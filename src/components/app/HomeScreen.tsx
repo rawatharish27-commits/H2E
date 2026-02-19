@@ -39,6 +39,7 @@ import { getTrustBadge } from '@/types'
 import { allResourceCategories, type Resource, type ResourceCategory } from '@/data/resources'
 import { TrustBadge } from './TrustBadge'
 import { SOSFloatingButton } from './SOSButton'
+import { HelpChatbot } from './HelpChatbot'
 import { IncomeStoryModal } from './IncomeStoryModal'
 
 export function HomeScreen() {
@@ -1421,6 +1422,9 @@ export function HomeScreen() {
 
       {/* SOS Emergency Button */}
       <SOSFloatingButton darkMode={darkMode} />
+
+      {/* Help Chatbot - AI Assistant */}
+      <HelpChatbot />
     </div>
   )
 }
