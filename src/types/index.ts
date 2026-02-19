@@ -74,6 +74,8 @@ export interface Problem {
   title: string
   description: string
   offerPrice: number | null
+  images: string[] | null
+  primaryImage: string | null
   lat: number
   lng: number
   address: string | null

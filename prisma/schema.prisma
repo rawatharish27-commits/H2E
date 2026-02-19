@@ -166,6 +166,10 @@ model Problem {
   description     String
   offerPrice      Float?
   
+  // Media
+  images          String?  // JSON array of image URLs
+  primaryImage    String?  // Main display image URL
+  
   // Location
   lat             Float
   lng             Float
