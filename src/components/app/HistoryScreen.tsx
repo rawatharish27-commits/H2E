@@ -17,15 +17,12 @@ import {
   HandHeart,
   Trophy,
   Zap,
-  Package,
-  AlertCircle,
-  BarChart3,
   Crown,
   Medal,
-  Gift
+  Gift,
+  AlertCircle
 } from 'lucide-react'
 import { useAppStore } from '@/store'
-import { getTrustBadge, formatDate } from '@/types'
 
 interface AreaStats {
   todayHelps: number
@@ -43,7 +40,7 @@ interface TopHelper {
   avatar?: string
   trustScore: number
   helpsDone: number
-  rating: number
+  rating: string
   badge: string
 }
 
@@ -60,7 +57,6 @@ export function HistoryScreen() {
   const fetchAreaData = async () => {
     setIsLoading(true)
     try {
-      // Fetch area statistics
       if (location) {
         const res = await fetch(`/api/area/stats?lat=${location.lat}&lng=${location.lng}`)
         const data = await res.json()
@@ -89,36 +85,43 @@ export function HistoryScreen() {
     return 'text-red-500'
   }
 
-  // Mock data for display
-  const mockAreaStats: AreaStats = {
-    todayHelps: 15,
-    yesterdayHelps: 23,
-    weeklyHelps: 87,
-    totalUsers: 156,
-    topCategory: { name: 'Medical Help', count: 34, icon: '🏥' },
-    topResource: { name: 'Vehicle Transport', count: 28, icon: '🏍️' },
-    highDemandHelps: [
-      { name: 'Medicine Delivery', count: 45, icon: '💊' },
-      { name: 'Grocery Pickup', count: 38, icon: '🛒' },
-      { name: 'Elderly Assist', count: 32, icon: '👴' },
-    ]
+  // No data state
+  if (!isLoading && !areaStats) {
+    return (
+      <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <header className={`sticky top-0 z-50 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
+          <div className="px-4 py-3 flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => setScreen('home')} className="rounded-xl">
+              <ArrowLeft className={`w-5 h-5 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
+            </Button>
+            <div className="flex-1">
+              <h1 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Area History</h1>
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Help activity in your area
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className={`w-20 h-20 rounded-3xl ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center mb-4`}>
+            <AlertCircle className={`w-10 h-10 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+          </div>
+          <h2 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>No Data Available</h2>
+          <p className={`text-center mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            Enable location to see area statistics
+          </p>
+          <Button
+            onClick={() => setScreen('nearby')}
+            className="bg-gradient-to-r from-orange-500 to-red-500 text-white"
+          >
+            <HandHeart className="w-4 h-4 mr-2" />
+            See Help Requests
+          </Button>
+        </main>
+      </div>
+    )
   }
-
-  const mockTopHelpers: TopHelper[] = [
-    { id: '1', name: 'Rajesh Kumar', trustScore: 92, helpsDone: 156, rating: 4.9, badge: '🏆 Top Helper', avatar: '' },
-    { id: '2', name: 'Priya Sharma', trustScore: 88, helpsDone: 134, rating: 4.8, badge: '⭐ Star Helper', avatar: '' },
-    { id: '3', name: 'Amit Patel', trustScore: 85, helpsDone: 98, rating: 4.7, badge: '💚 Trusted', avatar: '' },
-    { id: '4', name: 'Sunita Devi', trustScore: 82, helpsDone: 87, rating: 4.6, badge: '💚 Trusted', avatar: '' },
-    { id: '5', name: 'Vikram Singh', trustScore: 79, helpsDone: 76, rating: 4.5, badge: '💚 Trusted', avatar: '' },
-    { id: '6', name: 'Neha Gupta', trustScore: 77, helpsDone: 68, rating: 4.4, badge: '⭐ Rising Star', avatar: '' },
-    { id: '7', name: 'Deepak Yadav', trustScore: 75, helpsDone: 62, rating: 4.3, badge: '⭐ Rising Star', avatar: '' },
-    { id: '8', name: 'Kavita Joshi', trustScore: 73, helpsDone: 55, rating: 4.2, badge: '⭐ Rising Star', avatar: '' },
-    { id: '9', name: 'Rahul Verma', trustScore: 71, helpsDone: 48, rating: 4.1, badge: '⭐ Rising Star', avatar: '' },
-    { id: '10', name: 'Anita Sharma', trustScore: 70, helpsDone: 42, rating: 4.0, badge: '⭐ Rising Star', avatar: '' },
-  ]
-
-  const displayStats = areaStats || mockAreaStats
-  const displayHelpers = topHelpers.length > 0 ? topHelpers : mockTopHelpers
 
   return (
     <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -163,7 +166,7 @@ export function HistoryScreen() {
                   <div className="w-10 h-10 mx-auto rounded-xl bg-green-500 flex items-center justify-center mb-2">
                     <Calendar className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-green-600">{displayStats.todayHelps}</p>
+                  <p className="text-2xl font-bold text-green-600">{areaStats?.todayHelps || 0}</p>
                   <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Today</p>
                   <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>आज</p>
                 </CardContent>
@@ -175,7 +178,7 @@ export function HistoryScreen() {
                   <div className="w-10 h-10 mx-auto rounded-xl bg-blue-500 flex items-center justify-center mb-2">
                     <Clock className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-blue-600">{displayStats.yesterdayHelps}</p>
+                  <p className="text-2xl font-bold text-blue-600">{areaStats?.yesterdayHelps || 0}</p>
                   <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Yesterday</p>
                   <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>कल</p>
                 </CardContent>
@@ -187,7 +190,7 @@ export function HistoryScreen() {
                   <div className="w-10 h-10 mx-auto rounded-xl bg-purple-500 flex items-center justify-center mb-2">
                     <TrendingUp className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-600">{displayStats.weeklyHelps}</p>
+                  <p className="text-2xl font-bold text-purple-600">{areaStats?.weeklyHelps || 0}</p>
                   <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>This Week</p>
                   <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>इस हफ्ते</p>
                 </CardContent>
@@ -213,7 +216,7 @@ export function HistoryScreen() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-bold text-orange-600">{displayStats.totalUsers}</p>
+                      <p className="text-3xl font-bold text-orange-600">{areaStats?.totalUsers || 0}</p>
                       <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Active users</p>
                     </div>
                   </div>
@@ -233,11 +236,11 @@ export function HistoryScreen() {
                 <CardContent className="p-4">
                   <p className={`text-xs font-medium mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Top Category</p>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{displayStats.topCategory.icon}</span>
-                    <p className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>{displayStats.topCategory.name}</p>
+                    <span className="text-2xl">{areaStats?.topCategory?.icon || '📦'}</span>
+                    <p className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>{areaStats?.topCategory?.name || 'N/A'}</p>
                   </div>
                   <Badge className="bg-blue-100 text-blue-700 text-xs">
-                    {displayStats.topCategory.count} helps
+                    {areaStats?.topCategory?.count || 0} helps
                   </Badge>
                 </CardContent>
               </Card>
@@ -247,117 +250,121 @@ export function HistoryScreen() {
                 <CardContent className="p-4">
                   <p className={`text-xs font-medium mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Top Resource</p>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{displayStats.topResource.icon}</span>
-                    <p className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>{displayStats.topResource.name}</p>
+                    <span className="text-2xl">{areaStats?.topResource?.icon || '📦'}</span>
+                    <p className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>{areaStats?.topResource?.name || 'N/A'}</p>
                   </div>
                   <Badge className="bg-green-100 text-green-700 text-xs">
-                    {displayStats.topResource.count} helps
+                    {areaStats?.topResource?.count || 0} helps
                   </Badge>
                 </CardContent>
               </Card>
             </motion.div>
 
             {/* High Demanding Help */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border shadow-lg`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Zap className="w-5 h-5 text-yellow-500" />
-                    <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>High Demand in Your Area</h3>
-                  </div>
-                  <p className={`text-xs mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>आपके क्षेत्र में उच्च मांग</p>
-                  
-                  <div className="space-y-2">
-                    {displayStats.highDemandHelps.map((help, idx) => (
-                      <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{help.icon}</span>
-                          <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{help.name}</span>
+            {areaStats?.highDemandHelps && areaStats.highDemandHelps.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border shadow-lg`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Zap className="w-5 h-5 text-yellow-500" />
+                      <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>High Demand in Your Area</h3>
+                    </div>
+                    <p className={`text-xs mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>आपके क्षेत्र में उच्च मांग</p>
+                    
+                    <div className="space-y-2">
+                      {areaStats.highDemandHelps.map((help, idx) => (
+                        <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{help.icon}</span>
+                            <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{help.name}</span>
+                          </div>
+                          <Badge className="bg-orange-100 text-orange-700">
+                            {help.count} requests
+                          </Badge>
                         </div>
-                        <Badge className="bg-orange-100 text-orange-700">
-                          {help.count} requests
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
             {/* Top 10 Helpers */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-            >
-              <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border shadow-lg`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Trophy className="w-5 h-5 text-yellow-500" />
-                    <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Top 10 Helpers</h3>
-                  </div>
-                  <p className={`text-xs mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>आपके क्षेत्र के शीर्ष 10 मददगार</p>
-                  
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {displayHelpers.map((helper, idx) => (
-                      <motion.div
-                        key={helper.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className={`flex items-center gap-3 p-3 rounded-xl ${
-                          idx < 3 
-                            ? darkMode 
-                              ? 'bg-gradient-to-r from-yellow-900/20 via-transparent to-transparent border border-yellow-800/30' 
-                              : 'bg-gradient-to-r from-yellow-50 via-transparent to-transparent border border-yellow-100'
-                            : darkMode 
-                              ? 'bg-gray-700' 
-                              : 'bg-gray-50'
-                        }`}
-                      >
-                        {/* Rank */}
-                        <div className="w-8 flex justify-center">
-                          {getMedalIcon(idx + 1)}
-                        </div>
-                        
-                        {/* Avatar */}
-                        <Avatar className="w-10 h-10 border-2 border-white shadow">
-                          <AvatarImage src={helper.avatar} alt={helper.name} />
-                          <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold text-sm">
-                            {helper.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>{helper.name}</p>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-xs ${getTrustColor(helper.trustScore)}`}>
-                              Trust: {helper.trustScore}
-                            </span>
-                            <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>•</span>
-                            <span className="flex items-center gap-1 text-xs text-yellow-500">
-                              <Star className="w-3 h-3 fill-yellow-500" />
-                              {helper.rating}
-                            </span>
+            {topHelpers.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border shadow-lg`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Trophy className="w-5 h-5 text-yellow-500" />
+                      <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Top 10 Helpers</h3>
+                    </div>
+                    <p className={`text-xs mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>आपके क्षेत्र के शीर्ष 10 मददगार</p>
+                    
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {topHelpers.map((helper, idx) => (
+                        <motion.div
+                          key={helper.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className={`flex items-center gap-3 p-3 rounded-xl ${
+                            idx < 3 
+                              ? darkMode 
+                                ? 'bg-gradient-to-r from-yellow-900/20 via-transparent to-transparent border border-yellow-800/30' 
+                                : 'bg-gradient-to-r from-yellow-50 via-transparent to-transparent border border-yellow-100'
+                              : darkMode 
+                                ? 'bg-gray-700' 
+                                : 'bg-gray-50'
+                          }`}
+                        >
+                          {/* Rank */}
+                          <div className="w-8 flex justify-center">
+                            {getMedalIcon(idx + 1)}
                           </div>
-                        </div>
-                        
-                        {/* Stats */}
-                        <div className="text-right">
-                          <p className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{helper.helpsDone}</p>
-                          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>helps</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                          
+                          {/* Avatar */}
+                          <Avatar className="w-10 h-10 border-2 border-white shadow">
+                            <AvatarImage src={helper.avatar} alt={helper.name} />
+                            <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold text-sm">
+                              {helper.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>{helper.name}</p>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs ${getTrustColor(helper.trustScore)}`}>
+                                Trust: {helper.trustScore}
+                              </span>
+                              <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>•</span>
+                              <span className="flex items-center gap-1 text-xs text-yellow-500">
+                                <Star className="w-3 h-3 fill-yellow-500" />
+                                {helper.rating}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Stats */}
+                          <div className="text-right">
+                            <p className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{helper.helpsDone}</p>
+                            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>helps</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
             {/* Motivational Card */}
             <motion.div

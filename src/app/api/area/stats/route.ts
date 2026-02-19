@@ -10,9 +10,10 @@ export async function GET(request: NextRequest) {
 
     if (!lat || !lng) {
       return NextResponse.json({
-        success: true,
-        stats: getMockStats(),
-        topHelpers: getMockTopHelpers()
+        success: false,
+        error: 'Location required',
+        stats: null,
+        topHelpers: []
       })
     }
 
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
     const weeklyHelps = nearbyProblems.filter(p => p.status === 'COMPLETED').length
 
     // Get total users in area
-    const usersInArea = await db.user.findMany()
+    const totalUsers = await db.user.count()
 
     // Get top categories
     const categoryCounts = new Map<string, { count: number; icon: string }>()
@@ -75,10 +76,10 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b[1].count - a[1].count)
     
     const topCategory = sortedCategories[0] ? {
-      name: sortedCategories[0][0],
+      name: getCategoryName(sortedCategories[0][0]),
       count: sortedCategories[0][1].count,
       icon: sortedCategories[0][1].icon
-    } : { name: 'Medical Help', count: 0, icon: '🏥' }
+    } : { name: 'N/A', count: 0, icon: '📦' }
 
     // Get top resources (based on type)
     const resourceCounts = new Map<string, { count: number; icon: string }>()
@@ -94,48 +95,20 @@ export async function GET(request: NextRequest) {
       name: getTypeName(sortedResources[0][0]),
       count: sortedResources[0][1].count,
       icon: sortedResources[0][1].icon
-    } : { name: 'Vehicle Transport', count: 0, icon: '🏍️' }
+    } : { name: 'N/A', count: 0, icon: '📦' }
 
     // Get high demand helps (top 3 categories)
-    const highDemandHelps = sortedCategories.slice(0, 3).map(([name, data]) => ({
-      name: getCategoryName(name),
+    const highDemandHelps = sortedCategories.slice(0, 3).map(([category, data]) => ({
+      name: getCategoryName(category),
       count: data.count,
       icon: data.icon
     }))
 
-    // Get top 10 helpers
-    const helperStats = new Map<string, {
-      id: string
-      name: string
-      avatar: string | null
-      trustScore: number
-      helpsDone: number
-      ratingSum: number
-      ratingCount: number
-    }>()
-
-    nearbyProblems.forEach(p => {
-      if (p.acceptedBy && p.status === 'COMPLETED') {
-        p.acceptedBy.forEach(helperId => {
-          const existing = helperStats.get(helperId) || {
-            id: helperId,
-            name: 'User',
-            avatar: null,
-            trustScore: 50,
-            helpsDone: 0,
-            ratingSum: 0,
-            ratingCount: 0
-          }
-          existing.helpsDone += 1
-          helperStats.set(helperId, existing)
-        })
-      }
-    })
-
-    // Fetch helper details
-    const helperIds = Array.from(helperStats.keys())
-    const helpers = await db.user.findMany({
-      where: { id: { in: helperIds } },
+    // Get top 10 helpers - fetch all users with helps
+    const allUsers = await db.user.findMany({
+      where: {
+        helpfulCount: { gt: 0 }
+      },
       select: {
         id: true,
         name: true,
@@ -144,33 +117,22 @@ export async function GET(request: NextRequest) {
         helpfulCount: true,
         ratingSum: true,
         ratingCount: true
-      }
+      },
+      orderBy: {
+        helpfulCount: 'desc'
+      },
+      take: 10
     })
 
-    const topHelpers = helpers
-      .map(h => {
-        const stats = helperStats.get(h.id) || { helpsDone: 0 }
-        return {
-          id: h.id,
-          name: h.name || 'User',
-          avatar: h.avatar,
-          trustScore: h.trustScore,
-          helpsDone: stats.helpsDone,
-          rating: h.ratingCount > 0 ? (h.ratingSum / h.ratingCount).toFixed(1) : '0.0',
-          badge: getHelperBadge(h.trustScore, stats.helpsDone)
-        }
-      })
-      .sort((a, b) => b.helpsDone - a.helpsDone)
-      .slice(0, 10)
-
-    // If no real data, return mock data
-    if (topHelpers.length === 0) {
-      return NextResponse.json({
-        success: true,
-        stats: getMockStats(),
-        topHelpers: getMockTopHelpers()
-      })
-    }
+    const topHelpers = allUsers.map(h => ({
+      id: h.id,
+      name: h.name || 'User',
+      avatar: h.avatar,
+      trustScore: h.trustScore,
+      helpsDone: h.helpfulCount,
+      rating: h.ratingCount > 0 ? (h.ratingSum / h.ratingCount).toFixed(1) : '0.0',
+      badge: getHelperBadge(h.trustScore, h.helpfulCount)
+    }))
 
     return NextResponse.json({
       success: true,
@@ -178,14 +140,10 @@ export async function GET(request: NextRequest) {
         todayHelps,
         yesterdayHelps,
         weeklyHelps,
-        totalUsers: usersInArea.length,
+        totalUsers,
         topCategory,
         topResource,
-        highDemandHelps: highDemandHelps.length > 0 ? highDemandHelps : [
-          { name: 'Medicine Delivery', count: 45, icon: '💊' },
-          { name: 'Grocery Pickup', count: 38, icon: '🛒' },
-          { name: 'Elderly Assist', count: 32, icon: '👴' }
-        ]
+        highDemandHelps
       },
       topHelpers
     })
@@ -193,9 +151,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Area stats error:', error)
     return NextResponse.json({
-      success: true,
-      stats: getMockStats(),
-      topHelpers: getMockTopHelpers()
+      success: false,
+      error: 'Failed to fetch area stats',
+      stats: null,
+      topHelpers: []
     })
   }
 }
@@ -223,7 +182,22 @@ function getCategoryIcon(category: string): string {
     'emergency': '🆘',
     'digital': '📱',
     'tools': '🔧',
-    'pets': '🐕'
+    'pets': '🐕',
+    'critical-sos': '🆘',
+    'emergency-road': '🚗',
+    'safety-escort': '🛡️',
+    'patient-medical': '🏥',
+    'elderly-assist': '👴',
+    'child-family': '👶',
+    'line-presence': '🧍',
+    'shopping-errand': '🛒',
+    'household-help': '🏠',
+    'vehicle-transport': '🏍️',
+    'temp-manpower': '💪',
+    'item-sharing': '📦',
+    'digital-form': '📱',
+    'local-knowledge': '🗺️',
+    'pet-animal': '🐕'
   }
   return icons[category.toLowerCase()] || '📦'
 }
@@ -239,7 +213,22 @@ function getCategoryName(category: string): string {
     'emergency': 'Emergency SOS',
     'digital': 'Digital Form',
     'tools': 'Tools Needed',
-    'pets': 'Pet & Animal'
+    'pets': 'Pet & Animal',
+    'critical-sos': 'Critical SOS',
+    'emergency-road': 'Road Emergency',
+    'safety-escort': 'Safety Escort',
+    'patient-medical': 'Patient Medical',
+    'elderly-assist': 'Elderly Assist',
+    'child-family': 'Child & Family',
+    'line-presence': 'Line Presence',
+    'shopping-errand': 'Shopping Errand',
+    'household-help': 'Household Help',
+    'vehicle-transport': 'Vehicle Transport',
+    'temp-manpower': 'Temp Manpower',
+    'item-sharing': 'Item Sharing',
+    'digital-form': 'Digital Form',
+    'local-knowledge': 'Local Knowledge',
+    'pet-animal': 'Pet & Animal'
   }
   return names[category.toLowerCase()] || category
 }
@@ -268,35 +257,4 @@ function getHelperBadge(trustScore: number, helpsDone: number): string {
   if (trustScore >= 70) return '💚 Trusted'
   if (helpsDone >= 20) return '⭐ Rising Star'
   return '🌱 New Helper'
-}
-
-function getMockStats() {
-  return {
-    todayHelps: 15,
-    yesterdayHelps: 23,
-    weeklyHelps: 87,
-    totalUsers: 156,
-    topCategory: { name: 'Medical Help', count: 34, icon: '🏥' },
-    topResource: { name: 'Vehicle Transport', count: 28, icon: '🏍️' },
-    highDemandHelps: [
-      { name: 'Medicine Delivery', count: 45, icon: '💊' },
-      { name: 'Grocery Pickup', count: 38, icon: '🛒' },
-      { name: 'Elderly Assist', count: 32, icon: '👴' }
-    ]
-  }
-}
-
-function getMockTopHelpers() {
-  return [
-    { id: '1', name: 'Rajesh Kumar', trustScore: 92, helpsDone: 156, rating: '4.9', badge: '🏆 Top Helper', avatar: null },
-    { id: '2', name: 'Priya Sharma', trustScore: 88, helpsDone: 134, rating: '4.8', badge: '⭐ Star Helper', avatar: null },
-    { id: '3', name: 'Amit Patel', trustScore: 85, helpsDone: 98, rating: '4.7', badge: '💚 Trusted', avatar: null },
-    { id: '4', name: 'Sunita Devi', trustScore: 82, helpsDone: 87, rating: '4.6', badge: '💚 Trusted', avatar: null },
-    { id: '5', name: 'Vikram Singh', trustScore: 79, helpsDone: 76, rating: '4.5', badge: '💚 Trusted', avatar: null },
-    { id: '6', name: 'Neha Gupta', trustScore: 77, helpsDone: 68, rating: '4.4', badge: '⭐ Rising Star', avatar: null },
-    { id: '7', name: 'Deepak Yadav', trustScore: 75, helpsDone: 62, rating: '4.3', badge: '⭐ Rising Star', avatar: null },
-    { id: '8', name: 'Kavita Joshi', trustScore: 73, helpsDone: 55, rating: '4.2', badge: '⭐ Rising Star', avatar: null },
-    { id: '9', name: 'Rahul Verma', trustScore: 71, helpsDone: 48, rating: '4.1', badge: '⭐ Rising Star', avatar: null },
-    { id: '10', name: 'Anita Sharma', trustScore: 70, helpsDone: 42, rating: '4.0', badge: '⭐ Rising Star', avatar: null }
-  ]
 }
