@@ -1,0 +1,631 @@
+// HelpPe DailyEarn - Production-Grade Security Schema
+// Comprehensive A-to-Z Security Risk Map Implementation
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// For local development with SQLite
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// For production (Vercel/Neon/Supabase), use:
+// datasource db {
+//   provider  = "postgresql"
+//   url       = env("DATABASE_URL")
+//   // directUrl is required for Vercel/Neon/Supabase with connection pooling
+//   // It bypasses pgbouncer for transactions and avoids "prepared statement already exists" errors
+//   // If you don't have a direct URL, set DIRECT_DATABASE_URL to the same value as DATABASE_URL
+//   directUrl = env("DIRECT_DATABASE_URL")
+// }
+
+// User model - Both client and helper
+model User {
+  id            String   @id @default(cuid())
+  phone         String   @unique
+  name          String?
+  avatar        String?
+  email         String?
+  
+  // Subscription
+  paymentActive Boolean  @default(false)
+  activeTill    DateTime?
+  subscriptionType String @default("BASIC") // BASIC, PREMIUM, LIFETIME
+  
+  // Trust & Safety
+  trustScore    Int      @default(50)
+  noShowCount   Int      @default(0)
+  noShowStrikes Int      @default(0) // 3 strikes = invisible
+  reportCount   Int      @default(0)
+  helpfulCount  Int      @default(0) // Number of successful helps
+  ratingSum     Int      @default(0) // Sum of all ratings
+  ratingCount   Int      @default(0) // Number of ratings
+  
+  // Location (foreground only)
+  lat           Float?
+  lng           Float?
+  locationUpdatedAt DateTime?
+  lastActiveAt  DateTime @default(now())
+  
+  // Status - Security Enhanced
+  isBlocked     Boolean  @default(false)
+  isBanned      Boolean  @default(false)
+  isShadowBanned Boolean @default(false) // Silent invisible
+  isFlagged     Boolean  @default(false) // Under review
+  blockedTill   DateTime?
+  
+  // Referral System
+  referralCode       String?  @unique
+  referredBy         String?
+  referralCount      Int      @default(0)
+  referralRewards    Int      @default(0) // Days earned from referrals
+  
+  // Badges
+  badges        String?  // JSON array of badge IDs
+  
+  // Preferences
+  darkMode      Boolean  @default(false)
+  language      String   @default("hi") // hi, en
+  notifications Boolean  @default(true)
+  locationEnabled Boolean @default(true) // User can toggle
+  showProfile   Boolean  @default(true)
+  
+  // WhatsApp Notification Preferences
+  whatsappEnabled    Boolean  @default(false)
+  whatsappNumber     String?
+  quietHoursStart    String?  // e.g., "22:00"
+  quietHoursEnd      String?  // e.g., "07:00"
+  notificationTypes  String?  // JSON array of problem types to notify for
+  
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  problems      Problem[]
+  payments      Payment[]
+  feedbacks     Feedback[]
+  reports       Report[]  @relation("Reporter")
+  reportedBy    Report[]  @relation("Reported")
+  sessions      Session[]
+  referrals     Referral[] @relation("Referrer")
+  referredUsers Referral[] @relation("Referred")
+  achievements  UserAchievement[]
+  notificationsList Notification[]
+  deviceBindings DeviceBinding[]
+  securityAudits SecurityAudit[]
+  adminRoles    AdminAssignment[]
+  whatsappNotifications WhatsAppNotification[]
+
+  @@index([phone])
+  @@index([trustScore])
+  @@index([paymentActive])
+  @@index([referralCode])
+  @@index([isShadowBanned])
+  @@index([isFlagged])
+  @@index([whatsappEnabled])
+  @@index([whatsappNumber])
+}
+
+// Session model for JWT management
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  deviceInfo   String?
+  deviceFingerprint String? // For device binding
+  ipAddress    String?
+  userAgent    String?
+  isSuspicious Boolean  @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([deviceFingerprint])
+}
+
+// Device Binding - One device per account (soft binding)
+model DeviceBinding {
+  id              String   @id @default(cuid())
+  userId          String
+  deviceFingerprint String  @unique // Hash of device info
+  deviceName      String?
+  deviceType      String?  // mobile, tablet, desktop
+  osInfo          String?
+  firstSeenAt     DateTime @default(now())
+  lastUsedAt      DateTime @default(now())
+  isPrimary       Boolean  @default(false)
+  isBlocked       Boolean  @default(false)
+  suspiciousActivity Int   @default(0)
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceFingerprint])
+}
+
+// Problem/Help Request model
+model Problem {
+  id              String   @id @default(cuid())
+  postedById      String
+  
+  // Classification
+  type            String   // EMERGENCY, TIME_ACCESS, RESOURCE_RENT
+  category        String?  // puncture, charging, bike_rent, etc.
+  riskLevel       String   @default("LOW") // LOW, MEDIUM, HIGH
+  
+  // Content
+  title           String
+  description     String
+  offerPrice      Float?
+  
+  // Location
+  lat             Float
+  lng             Float
+  address         String?
+  
+  // Trust requirement
+  minTrustRequired Int    @default(40)
+  
+  // Status
+  status          String   @default("OPEN") // OPEN, IN_PROGRESS, CLOSED, CANCELLED
+  
+  // Helper info
+  acceptedById    String?
+  acceptedAt      DateTime?
+  
+  // No-show tracking
+  helperArrived   Boolean?
+  noShowReported  Boolean  @default(false)
+  
+  // Content moderation
+  isAutoHidden    Boolean  @default(false) // Hidden due to content filter
+  moderationStatus String  @default("APPROVED") // PENDING, APPROVED, REJECTED
+  moderationReason String?
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  expiresAt       DateTime?
+  closedAt        DateTime?
+  
+  // Relations
+  postedBy        User     @relation(fields: [postedById], references: [id])
+  feedbacks       Feedback[]
+  reports         Report[]
+  chatMessages    ChatMessage[]
+
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([lat, lng])
+  @@index([isAutoHidden])
+}
+
+// Payment/Subscription model
+model Payment {
+  id              String   @id @default(cuid())
+  userId          String
+  
+  amount          Float    @default(49)
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED, REFUNDED
+  
+  // Payment gateway info
+  paymentMethod   String?  // UPI, RAZORPAY, MANUAL
+  upiId           String?
+  transactionRef  String?
+  razorpayId      String?
+  razorpayOrderId String?
+  
+  // Fraud detection
+  isFraudSuspected Boolean @default(false)
+  fraudReason     String?
+  previousPendingCount Int? // Count of previous pending payments
+  
+  // Admin approval
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectionReason String?
+  
+  // SLA tracking
+  approvalSLA     Int      @default(240) // minutes (4 hours)
+  slaBreached     Boolean  @default(false)
+  
+  // Period
+  month           String   // Format: "2024-01"
+  daysGranted     Int      @default(30)
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([razorpayId])
+  @@index([isFraudSuspected])
+}
+
+// Feedback/Rating model
+model Feedback {
+  id            String   @id @default(cuid())
+  problemId     String
+  fromUserId    String
+  toUserId      String
+  
+  // Rating 1-5
+  rating        Int
+  
+  // Optional comment
+  comment       String?
+  
+  // Helper arrived or no-show
+  helperArrived Boolean @default(true)
+  
+  // Help duration in minutes
+  duration      Int?
+  
+  // Metadata
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  problem       Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [toUserId], references: [id])
+
+  @@unique([problemId, fromUserId])
+  @@index([toUserId])
+}
+
+// Report model (for incidents)
+model Report {
+  id              String   @id @default(cuid())
+  problemId       String?
+  
+  reporterId      String
+  reportedUserId  String
+  
+  reason          String
+  description     String?
+  severity        String   @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  
+  // Admin action
+  status          String   @default("PENDING") // PENDING, REVIEWED, ACTIONED, DISMISSED
+  actionTaken     String?  // WARN, RESTRICT, SHADOW_BAN, BAN
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  reporter        User     @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUser    User     @relation("Reported", fields: [reportedUserId], references: [id])
+  problem         Problem? @relation(fields: [problemId], references: [id])
+
+  @@index([status])
+  @@index([reportedUserId])
+}
+
+// OTP Verification model (for login)
+model OtpVerification {
+  id           String   @id @default(cuid())
+  phone        String
+  otp          String
+  verified     Boolean  @default(false)
+  attempts     Int      @default(0)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([phone])
+  @@index([expiresAt])
+}
+
+// Referral model
+model Referral {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referredUserId  String
+  code            String
+  
+  // Status
+  status          String   @default("PENDING") // PENDING, VERIFIED, REWARDED
+  
+  // Verification
+  verifiedAt      DateTime?
+  rewardedAt      DateTime?
+  
+  // Reward
+  rewardDays      Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  referrer        User     @relation("Referrer", fields: [referrerId], references: [id])
+  referredUser    User     @relation("Referred", fields: [referredUserId], references: [id])
+
+  @@unique([referredUserId])
+  @@index([referrerId])
+  @@index([code])
+}
+
+// Badge/Achievement model
+model Badge {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  icon            String
+  category        String   // TRUST, HELP, REFERRAL, SPECIAL
+  requirement     String   // JSON with requirements
+  reward          String?  // JSON with rewards
+  createdAt       DateTime @default(now())
+  
+  achievements    UserAchievement[]
+
+  @@unique([name])
+}
+
+// User Achievement model
+model UserAchievement {
+  id          String   @id @default(cuid())
+  userId      String
+  badgeId     String
+  earnedAt    DateTime @default(now())
+  notified    Boolean  @default(false)
+  
+  user        User     @relation(fields: [userId], references: [id])
+  badge       Badge    @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+}
+
+// Chat Message model
+model ChatMessage {
+  id          String   @id @default(cuid())
+  problemId   String
+  senderId    String
+  message     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([problemId])
+  @@index([senderId])
+}
+
+// Notification model
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // REFERRAL, PAYMENT, HELP, SYSTEM, SECURITY
+  title       String
+  message     String
+  data        String?  // JSON
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// Admin audit log
+model AdminLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  action      String   // APPROVE_PAYMENT, BAN_USER, FLAG_FRAUD, etc.
+  targetType  String   // USER, PAYMENT, PROBLEM, REPORT
+  targetId    String?
+  details     String?
+  reason      String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}
+
+// Security Audit - Comprehensive logging
+model SecurityAudit {
+  id              String   @id @default(cuid())
+  userId          String?
+  
+  eventType       String   // GPS_SPOOF, MULTI_ACCOUNT, FRAUD_ATTEMPT, SUSPICIOUS_LOGIN, etc.
+  severity        String   // INFO, WARNING, HIGH, CRITICAL
+  
+  // Event details
+  description     String
+  metadata        String?  // JSON
+  
+  // Location data if applicable
+  lat             Float?
+  lng             Float?
+  
+  // Device info
+  deviceFingerprint String?
+  ipAddress       String?
+  userAgent       String?
+  
+  // Resolution
+  resolved        Boolean  @default(false)
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  resolution      String?
+  
+  createdAt       DateTime @default(now())
+  
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([resolved])
+}
+
+// SOS Alert model
+model SosAlert {
+  id          String   @id @default(cuid())
+  userId      String
+  problemId   String?
+  lat         Float
+  lng         Float
+  message     String?
+  status      String   @default("ACTIVE") // ACTIVE, RESOLVED, FALSE_ALARM
+  resolvedBy  String?
+  resolvedAt  DateTime?
+  responseTime Int?    // seconds until response
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Rate Limit model
+model RateLimit {
+  id          String   @id @default(cuid())
+  identifier  String   // IP or User ID
+  action      String   // SEND_OTP, VERIFY_OTP, CREATE_PROBLEM, etc.
+  count       Int      @default(1)
+  resetAt     DateTime
+  createdAt   DateTime @default(now())
+
+  @@unique([identifier, action])
+  @@index([resetAt])
+}
+
+// Content Filter - Banned words/categories
+model ContentFilter {
+  id          String   @id @default(cuid())
+  type        String   // WORD, CATEGORY, PATTERN
+  value       String
+  category    String?  // illegal, dangerous, spam, inappropriate
+  severity    String   @default("HIGH") // LOW, MEDIUM, HIGH, CRITICAL
+  action      String   @default("BLOCK") // BLOCK, FLAG, REVIEW
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@unique([type, value])
+  @@index([category])
+}
+
+// Admin Role - Role-based access
+model AdminRole {
+  id          String   @id @default(cuid())
+  name        String   @unique // super_admin, admin, moderator, support
+  permissions String   // JSON array of permissions
+  description String?
+  createdAt   DateTime @default(now())
+  
+  assignments AdminAssignment[]
+
+  @@index([name])
+}
+
+// Admin Assignment - User to Role mapping
+model AdminAssignment {
+  id          String   @id @default(cuid())
+  userId      String
+  roleId      String
+  assignedBy  String
+  assignedAt  DateTime @default(now())
+  isActive    Boolean  @default(true)
+  
+  user        User     @relation(fields: [userId], references: [id])
+  role        AdminRole @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId])
+  @@index([isActive])
+}
+
+// System Settings model
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+}
+
+// Daily Stats - For supply monitoring
+model DailyStat {
+  id              String   @id @default(cuid())
+  date            String   @unique // YYYY-MM-DD
+  
+  // User stats
+  newUsers        Int      @default(0)
+  activeUsers     Int      @default(0)
+  paidUsers       Int      @default(0)
+  
+  // Helper stats
+  activeHelpers   Int      @default(0)
+  totalHelps      Int      @default(0)
+  noShows         Int      @default(0)
+  
+  // Problem stats
+  problemsPosted  Int      @default(0)
+  problemsClosed  Int      @default(0)
+  
+  // Financial
+  paymentsPending Int      @default(0)
+  paymentsApproved Int     @default(0)
+  revenue         Float    @default(0)
+  
+  // Security
+  fraudAttempts   Int      @default(0)
+  accountsBanned  Int      @default(0)
+  reportsReceived Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+
+  @@index([date])
+}
+
+// WhatsApp Notification model - For tracking notifications sent to paid users
+model WhatsAppNotification {
+  id          String    @id @default(cuid())
+  userId      String
+  problemId   String
+  
+  // Status tracking
+  status      String    @default("PENDING") // PENDING, SENT, DELIVERED, FAILED, READ
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+  
+  // Error handling
+  errorMessage String?
+  retryCount  Int       @default(0)
+  
+  // Notification content
+  messageContent String? // The message that was sent
+  
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+  @@index([userId])
+  @@index([problemId])
+  @@index([status])
+  @@index([createdAt])
+}

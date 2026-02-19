@@ -1,0 +1,114 @@
+{
+  "name": "Help2Earn - Local Help & Earn",
+  "short_name": "Help2Earn",
+  "description": "Madad karke roz ₹1000-₹2000 tak kamaayein. Local help, local income, local trust. Emergency help, time/access services, resource rent - sab ek app me. Help karo, Earn karo!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "hi",
+  "dir": "ltr",
+  "categories": ["lifestyle", "social", "utilities", "productivity", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Home Screen"
+    },
+    {
+      "src": "/screenshots/nearby.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Nearby Help Requests"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Post Help Request",
+      "short_name": "Post Help",
+      "description": "Post a new help request",
+      "url": "/?action=post",
+      "icons": [{ "src": "/icons/shortcut-post.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Find Nearby Help",
+      "short_name": "Nearby",
+      "description": "Find help requests nearby",
+      "url": "/?action=nearby",
+      "icons": [{ "src": "/icons/shortcut-nearby.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+help2earn",
+      "url": "/?ref=%s"
+    }
+  ]
+}

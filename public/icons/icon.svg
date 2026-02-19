@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#ea580c"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bg)"/>
+  
+  <!-- Inner Circle (white) -->
+  <circle cx="256" cy="256" r="200" fill="white" opacity="0.95"/>
+  
+  <!-- Handshake Symbol -->
+  <g transform="translate(100, 140)">
+    <!-- Left Hand -->
+    <path d="M60 100 Q30 80 40 50 Q50 30 80 40 L120 60 Q140 70 140 100 L140 140 Q140 160 120 160 L80 160 Q50 160 50 130 L50 110 Q50 100 60 100Z" fill="#ea580c"/>
+    
+    <!-- Right Hand -->
+    <path d="M200 100 Q230 80 220 50 Q210 30 180 40 L140 60 Q120 70 120 100 L120 140 Q120 160 140 160 L180 160 Q210 160 210 130 L210 110 Q210 100 200 100Z" fill="#f97316"/>
+    
+    <!-- Clasp -->
+    <ellipse cx="130" cy="110" rx="40" ry="35" fill="#dc2626"/>
+  </g>
+  
+  <!-- H2E Text -->
+  <text x="256" y="350" text-anchor="middle" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#ea580c">H2E</text>
+  
+  <!-- Trust Badge -->
+  <circle cx="400" cy="100" r="50" fill="#22c55e"/>
+  <text x="400" y="115" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" fill="white">✓</text>
+</svg>
