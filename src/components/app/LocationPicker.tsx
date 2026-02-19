@@ -70,12 +70,31 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
     loadGoogleMaps()
   }, [])
 
-  // Initialize map when shown
-  useEffect(() => {
-    if (showMap && mapLoaded && mapRef.current && !googleMapRef.current) {
-      initMap()
+  // Reverse geocode to get address
+  const reverseGeocode = useCallback(async (lat: number, lng: number) => {
+    if (!window.google) return
+
+    try {
+      const geocoder = new window.google.maps.Geocoder()
+      geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
+        if (status === 'OK' && results[0]) {
+          setAddress(results[0].formatted_address)
+        }
+      })
+    } catch (e) {
+      console.error('Geocoding error:', e)
     }
-  }, [showMap, mapLoaded])
+  }, [])
+
+  // Update location and reverse geocode
+  const updateLocation = useCallback((lat: number, lng: number, addr?: string) => {
+    setSelectedLocation({ lat, lng })
+    if (addr) {
+      setAddress(addr)
+    } else {
+      reverseGeocode(lat, lng)
+    }
+  }, [reverseGeocode])
 
   // Initialize Google Map
   const initMap = useCallback(() => {
@@ -143,33 +162,14 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
     if (selectedLocation) {
       reverseGeocode(selectedLocation.lat, selectedLocation.lng)
     }
-  }, [darkMode, selectedLocation])
+  }, [darkMode, selectedLocation, updateLocation, reverseGeocode])
 
-  // Update location and reverse geocode
-  const updateLocation = (lat: number, lng: number, addr?: string) => {
-    setSelectedLocation({ lat, lng })
-    if (addr) {
-      setAddress(addr)
-    } else {
-      reverseGeocode(lat, lng)
+  // Initialize map when shown
+  useEffect(() => {
+    if (showMap && mapLoaded && mapRef.current && !googleMapRef.current) {
+      initMap()
     }
-  }
-
-  // Reverse geocode to get address
-  const reverseGeocode = async (lat: number, lng: number) => {
-    if (!window.google) return
-
-    try {
-      const geocoder = new window.google.maps.Geocoder()
-      geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
-        if (status === 'OK' && results[0]) {
-          setAddress(results[0].formatted_address)
-        }
-      })
-    } catch (e) {
-      console.error('Geocoding error:', e)
-    }
-  }
+  }, [showMap, mapLoaded, initMap])
 
   // Detect current location
   const detectCurrentLocation = () => {

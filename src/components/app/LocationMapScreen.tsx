@@ -18,8 +18,7 @@ import {
   AlertCircle,
   Filter,
   Layers,
-  ExternalLink,
-  Directions
+  ExternalLink
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { Problem, ProblemType, formatDistance, formatPrice, formatDate, getTrustBadge, calculateDistance } from '@/types'
@@ -383,7 +382,7 @@ export function LocationMapScreen() {
                       onClick={() => openDirections(selectedProblem)}
                       className={`flex-1 h-12 rounded-xl font-medium ${darkMode ? 'border-gray-600' : ''}`}
                     >
-                      <Directions className="w-4 h-4 mr-2" />
+                      <Navigation className="w-4 h-4 mr-2" />
                       Directions
                     </Button>
                     <Button
