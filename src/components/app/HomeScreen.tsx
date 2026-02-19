@@ -822,61 +822,120 @@ export function HomeScreen() {
 
       {/* Main Content - Added extra bottom padding for footer */}
       <main className="flex-1 pb-32">
-        {/* Core Philosophy Card */}
+        {/* User Profile Card - Attractive Light Blue/Indigo Gradient */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mx-4 mt-4"
         >
-          <Card className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white border-0 shadow-2xl overflow-hidden rounded-3xl">
-            <CardContent className="p-6 relative">
+          <Card className="bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 text-white border-0 shadow-2xl overflow-hidden rounded-3xl">
+            <CardContent className="p-5 relative">
               {/* Decorative Elements */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
               
               <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-white/80 text-sm">{greeting}</p>
-                  <span className="text-white/60">•</span>
-                  <p className="text-white/80 text-sm">{getGreetingHindi()}</p>
-                </div>
-                <h2 className="text-2xl font-bold mb-2">
-                  {displayName}!
-                </h2>
-                
-                {isActive ? (
-                  <motion.div 
-                    initial={{ scale: 0.95 }}
-                    animate={{ scale: 1 }}
-                    className="flex items-center gap-3 bg-white/20 rounded-2xl p-4 backdrop-blur-sm"
-                  >
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <span className="font-bold text-lg">Account Active</span>
-                      <p className="text-white/80 text-sm">खाता सक्रिय है</p>
-                    </div>
-                    <Badge className="bg-white text-green-600 font-bold px-3 py-1">✓ ACTIVE</Badge>
-                  </motion.div>
-                ) : (
-                  <div>
-                    <p className="text-white/90 text-sm mb-3">
-                      Become part of this area's help network.
-                    </p>
-                    <p className="text-white/70 text-xs mb-4">
-                      इस क्षेत्र के मदद नेटवर्क का हिस्सा बनें।
-                    </p>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button
-                        onClick={() => setScreen('subscription')}
-                        className="bg-white text-orange-600 hover:bg-white/90 font-bold shadow-xl h-14 rounded-2xl text-base px-6"
-                      >
-                        <Users className="w-5 h-5 mr-2" />
-                        Join Community / समुदाय से जुड़ें
-                      </Button>
-                    </motion.div>
+                {/* Avatar and Greeting Section */}
+                <div className="flex items-center gap-4 mb-4">
+                  {/* Avatar */}
+                  <div className="relative">
+                    {user?.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={displayName}
+                        className="w-16 h-16 rounded-2xl object-cover border-2 border-white/30 shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-white/30 to-white/10 flex items-center justify-center text-2xl font-bold shadow-lg border border-white/20">
+                        {displayName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    {/* Status Indicator */}
+                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white ${isActive ? 'bg-green-400' : 'bg-orange-400'}`} />
                   </div>
+                  
+                  {/* Greeting */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-white/70 text-xs">{greeting}</p>
+                      <span className="text-white/50">•</span>
+                      <p className="text-white/70 text-xs">{getGreetingHindi()}</p>
+                    </div>
+                    <h2 className="text-xl font-bold">
+                      {displayName}!
+                    </h2>
+                  </div>
+                </div>
+                
+                {/* Account Status Badge */}
+                <div className="mb-4">
+                  {isActive ? (
+                    <Badge className="bg-green-500/90 text-white font-bold px-4 py-1.5 rounded-full shadow-lg">
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                      Account Active • खाता सक्रिय
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-orange-500/90 text-white font-bold px-4 py-1.5 rounded-full shadow-lg">
+                      <Clock className="w-3.5 h-3.5 mr-1.5" />
+                      Not Activated • सक्रिय नहीं
+                    </Badge>
+                  )}
+                </div>
+                
+                {/* Stats Section - Glassmorphism Effect */}
+                <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Trust Score */}
+                    <div className="bg-white/20 rounded-xl p-3 text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Shield className="w-4 h-4" />
+                        <span className="text-xs text-white/80">Trust</span>
+                      </div>
+                      <p className={`text-xl font-bold ${
+                        (user?.trustScore || 50) >= 70 ? 'text-green-300' : 
+                        (user?.trustScore || 50) >= 40 ? 'text-yellow-300' : 'text-red-300'
+                      }`}>
+                        {user?.trustScore || 50}
+                      </p>
+                    </div>
+                    
+                    {/* Rating */}
+                    <div className="bg-white/20 rounded-xl p-3 text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Star className="w-4 h-4" />
+                        <span className="text-xs text-white/80">Rating</span>
+                      </div>
+                      <p className="text-xl font-bold text-yellow-300">
+                        {user?.ratingCount && user.ratingCount > 0 
+                          ? (user.ratingSum / user.ratingCount).toFixed(1) 
+                          : 'New'}
+                      </p>
+                    </div>
+                    
+                    {/* Helps Done */}
+                    <div className="bg-white/20 rounded-xl p-3 text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <HandHeart className="w-4 h-4" />
+                        <span className="text-xs text-white/80">Helps</span>
+                      </div>
+                      <p className="text-xl font-bold text-white">
+                        {user?.helpfulCount || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Activate Button for Non-Active Users */}
+                {!isActive && (
+                  <motion.div className="mt-4" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      onClick={() => setScreen('subscription')}
+                      className="w-full bg-white text-indigo-600 hover:bg-white/90 font-bold shadow-xl h-12 rounded-xl text-sm"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Activate Account / खाता सक्रिय करें
+                    </Button>
+                  </motion.div>
                 )}
               </div>
             </CardContent>
