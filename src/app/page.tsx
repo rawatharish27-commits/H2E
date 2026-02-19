@@ -22,6 +22,7 @@ import { AboutScreen } from '@/components/app/AboutScreen'
 import { ContactScreen } from '@/components/app/ContactScreen'
 import { PrivacyScreen } from '@/components/app/PrivacyScreen'
 import { LegalScreen } from '@/components/app/LegalScreen'
+import { HistoryScreen } from '@/components/app/HistoryScreen'
 import { HandHeart } from 'lucide-react'
 
 // Simple splash screen - just branding
@@ -169,7 +170,7 @@ export default function Home() {
       case 'legal':
         return <LegalScreen />
       case 'history':
-        return <ProfileScreen />
+        return <HistoryScreen />
       default:
         return <HomeScreen />
     }

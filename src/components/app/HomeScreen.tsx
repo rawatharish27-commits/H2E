@@ -1438,7 +1438,7 @@ export function HomeScreen() {
             <div className={`w-11 h-11 rounded-2xl ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center`}>
               <MapPin className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
             </div>
-            <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Nearby</span>
+            <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Help Requested</span>
           </motion.button>
           
           <motion.button
