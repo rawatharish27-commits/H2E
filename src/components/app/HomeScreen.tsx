@@ -39,6 +39,7 @@ import { getTrustBadge } from '@/types'
 import { allResourceCategories, type Resource, type ResourceCategory } from '@/data/resources'
 import { TrustBadge } from './TrustBadge'
 import { SOSFloatingButton } from './SOSButton'
+import { IncomeStoryModal } from './IncomeStoryModal'
 
 export function HomeScreen() {
   const { user, setScreen, isSubscriptionActive, getTrustInfo, requestLocation, location, darkMode, toggleDarkMode } = useAppStore()
@@ -48,6 +49,8 @@ export function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<ResourceCategory | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'all' | 'emergency' | 'rent' | 'skill'>('all')
+  const [showIncomeStory, setShowIncomeStory] = useState(false)
+  const [selectedHelpCard, setSelectedHelpCard] = useState<typeof allHelpCards[0] | null>(null)
 
   useEffect(() => {
     requestLocation()
@@ -72,34 +75,594 @@ export function HomeScreen() {
     return 'शुभ संध्या'
   }
 
-  // Pause Moment Cards - Situational Storytelling (English + Hindi only)
-  const pauseMomentCards = [
+  // All Help Cards - 45 Categories (15 Daily Need + 30 Situational)
+  const allHelpCards = [
+    // Daily Need Help Categories (15 cards - marked with isDailyNeed: true)
     {
-      id: 1,
-      icon: '👰',
-      situationEn: "Wedding coming up? Need a saree for just one day?",
-      situationHi: "शादी है? सिर्फ़ एक दिन के लिए साड़ी चाहिए?",
-      questionEn: "Is buying from market necessary?",
-      questionHi: "क्या मार्केट से खरीदना ज़रूरी है?",
-      gradient: 'from-pink-400 to-rose-500'
+      id: 'critical-sos',
+      icon: '🆘',
+      titleEn: 'Critical SOS',
+      titleHi: 'आपातकालीन SOS',
+      descriptionEn: 'Immediate emergency help for critical situations',
+      descriptionHi: 'गंभीर स्थितियों के लिए तत्काल आपातकालीन मदद',
+      avgEarning: '₹200-500',
+      timeRequired: 'Urgent',
+      successRate: '95%',
+      isDailyNeed: true,
+      gradient: 'from-red-500 to-rose-500'
     },
     {
-      id: 2,
-      icon: '🏦',
-      situationEn: "The bank queue is long.",
-      situationHi: "बैंक की लाइन लंबी है।",
-      questionEn: "Can someone nearby help?",
-      questionHi: "क्या कोई पास में मदद कर सकता है?",
+      id: 'emergency-road',
+      icon: '🚗',
+      titleEn: 'Road Emergency',
+      titleHi: 'सड़क आपातकाल',
+      descriptionEn: 'Vehicle breakdown and roadside assistance',
+      descriptionHi: 'वाहन खराबी और सड़क किनारे सहायता',
+      avgEarning: '₹100-300',
+      timeRequired: '30-60 min',
+      successRate: '90%',
+      isDailyNeed: true,
+      gradient: 'from-orange-500 to-amber-500'
+    },
+    {
+      id: 'safety-escort',
+      icon: '🛡️',
+      titleEn: 'Safety Escort',
+      titleHi: 'सुरक्षा साथी',
+      descriptionEn: 'Safe accompaniment for travel and late hours',
+      descriptionHi: 'यात्रा और देर शाम के लिए सुरक्षित साथ',
+      avgEarning: '₹100-300',
+      timeRequired: '1-2 hrs',
+      successRate: '92%',
+      isDailyNeed: true,
+      gradient: 'from-blue-500 to-indigo-500'
+    },
+    {
+      id: 'patient-medical',
+      icon: '🏥',
+      titleEn: 'Patient Medical',
+      titleHi: 'मरीज चिकित्सा',
+      descriptionEn: 'Hospital visits, medicine delivery, patient care',
+      descriptionHi: 'अस्पताल विज़िट, दवा डिलीवरी, मरीज देखभाल',
+      avgEarning: '₹150-400',
+      timeRequired: '2-4 hrs',
+      successRate: '94%',
+      isDailyNeed: true,
+      gradient: 'from-red-400 to-pink-500'
+    },
+    {
+      id: 'elderly-assist',
+      icon: '👴',
+      titleEn: 'Elderly Assist',
+      titleHi: 'बुजुर्ग सहायता',
+      descriptionEn: 'Help for senior citizens with daily tasks',
+      descriptionHi: 'वरिष्ठ नागरिकों को दैनिक कार्यों में मदद',
+      avgEarning: '₹100-250',
+      timeRequired: '1-3 hrs',
+      successRate: '96%',
+      isDailyNeed: true,
+      gradient: 'from-teal-500 to-cyan-500'
+    },
+    {
+      id: 'child-family',
+      icon: '👶',
+      titleEn: 'Child & Family',
+      titleHi: 'बच्चे और परिवार',
+      descriptionEn: 'Babysitting, school pickup, homework help',
+      descriptionHi: 'बच्चों की देखभाल, स्कूल पिकअप, होमवर्क मदद',
+      avgEarning: '₹100-300',
+      timeRequired: '1-4 hrs',
+      successRate: '93%',
+      isDailyNeed: true,
+      gradient: 'from-pink-500 to-rose-500'
+    },
+    {
+      id: 'line-presence',
+      icon: '🧍',
+      titleEn: 'Line Presence',
+      titleHi: 'लाइन में खड़े होना',
+      descriptionEn: 'Standing in queues at banks, offices, hospitals',
+      descriptionHi: 'बैंक, कार्यालय, अस्पतालों में लाइन में खड़े होना',
+      avgEarning: '₹50-200',
+      timeRequired: '1-3 hrs',
+      successRate: '88%',
+      isDailyNeed: true,
       gradient: 'from-blue-400 to-cyan-500'
     },
     {
-      id: 3,
+      id: 'shopping-errand',
+      icon: '🛒',
+      titleEn: 'Shopping Errand',
+      titleHi: 'खरीदारी दौड़',
+      descriptionEn: 'Grocery pickup, market shopping, deliveries',
+      descriptionHi: 'किराना पिकअप, बाजार खरीदारी, डिलीवरी',
+      avgEarning: '₹50-150',
+      timeRequired: '30-90 min',
+      successRate: '91%',
+      isDailyNeed: true,
+      gradient: 'from-green-500 to-emerald-500'
+    },
+    {
+      id: 'household-help',
+      icon: '🏠',
+      titleEn: 'Household Help',
+      titleHi: 'घरेलू मदद',
+      descriptionEn: 'Cleaning, cooking, minor repairs at home',
+      descriptionHi: 'सफाई, खाना बनाना, घर में छोटी मरम्मत',
+      avgEarning: '₹100-300',
+      timeRequired: '1-3 hrs',
+      successRate: '89%',
+      isDailyNeed: true,
+      gradient: 'from-amber-500 to-yellow-500'
+    },
+    {
+      id: 'vehicle-transport',
       icon: '🏍️',
-      situationEn: "Your bike got punctured.",
-      situationHi: "आपकी बाइक पंचर हो गई।",
-      questionEn: "Could someone have the tools?",
-      questionHi: "क्या किसी के पास टूल्स हो सकते हैं?",
+      titleEn: 'Vehicle Transport',
+      titleHi: 'वाहन परिवहन',
+      descriptionEn: 'Lift sharing, pickup-drop, local transport',
+      descriptionHi: 'लिफ्ट शेयरिंग, पिकअप-ड्रॉप, स्थानीय परिवहन',
+      avgEarning: '₹30-200',
+      timeRequired: '15-60 min',
+      successRate: '87%',
+      isDailyNeed: true,
+      gradient: 'from-purple-500 to-violet-500'
+    },
+    {
+      id: 'temp-manpower',
+      icon: '💪',
+      titleEn: 'Temp Manpower',
+      titleHi: 'अस्थायी मजदूर',
+      descriptionEn: 'Temporary help for events, shifting, loading',
+      descriptionHi: 'कार्यक्रमों, शिफ्टिंग, लोडिंग के लिए अस्थायी मदद',
+      avgEarning: '₹200-500',
+      timeRequired: '2-8 hrs',
+      successRate: '85%',
+      isDailyNeed: true,
+      gradient: 'from-slate-500 to-gray-600'
+    },
+    {
+      id: 'item-sharing',
+      icon: '📦',
+      titleEn: 'Item Sharing',
+      titleHi: 'सामान साझा करना',
+      descriptionEn: 'Tools, appliances, household items on rent/share',
+      descriptionHi: 'किराये/साझे पर उपकरण, उपकरण, घरेलू सामान',
+      avgEarning: '₹50-300',
+      timeRequired: 'Flexible',
+      successRate: '82%',
+      isDailyNeed: true,
+      gradient: 'from-orange-400 to-red-400'
+    },
+    {
+      id: 'digital-form',
+      icon: '📱',
+      titleEn: 'Digital Form',
+      titleHi: 'डिजिटल फॉर्म',
+      descriptionEn: 'Online forms, UPI help, digital literacy',
+      descriptionHi: 'ऑनलाइन फॉर्म, UPI मदद, डिजिटल साक्षरता',
+      avgEarning: '₹50-200',
+      timeRequired: '30-60 min',
+      successRate: '90%',
+      isDailyNeed: true,
+      gradient: 'from-indigo-500 to-blue-500'
+    },
+    {
+      id: 'local-knowledge',
+      icon: '🗺️',
+      titleEn: 'Local Knowledge',
+      titleHi: 'स्थानीय जानकारी',
+      descriptionEn: 'Area guidance, directions, local tips',
+      descriptionHi: 'क्षेत्र मार्गदर्शन, दिशाएं, स्थानीय सुझाव',
+      avgEarning: '₹30-100',
+      timeRequired: '15-30 min',
+      successRate: '95%',
+      isDailyNeed: true,
+      gradient: 'from-teal-400 to-green-500'
+    },
+    {
+      id: 'pet-animal',
+      icon: '🐕',
+      titleEn: 'Pet & Animal',
+      titleHi: 'पालतू जानवर',
+      descriptionEn: 'Dog walking, pet care, feeding strays',
+      descriptionHi: 'कुत्ते को घुमाना, पालतू देखभाल, आवारों को खिलाना',
+      avgEarning: '₹50-200',
+      timeRequired: '30-60 min',
+      successRate: '88%',
+      isDailyNeed: true,
+      gradient: 'from-amber-400 to-orange-500'
+    },
+    // Situational Cards (30 cards)
+    {
+      id: 'wedding-saree',
+      icon: '👰',
+      titleEn: 'Wedding Saree',
+      titleHi: 'शादी की साड़ी',
+      descriptionEn: 'Wedding coming up? Need a saree for just one day?',
+      descriptionHi: 'शादी है? सिर्फ़ एक दिन के लिए साड़ी चाहिए?',
+      avgEarning: '₹500-5000',
+      timeRequired: '1 day',
+      successRate: '80%',
+      isDailyNeed: false,
+      gradient: 'from-pink-400 to-rose-500'
+    },
+    {
+      id: 'sherwani',
+      icon: '🤵',
+      titleEn: 'Sherwani',
+      titleHi: 'शेरवानी',
+      descriptionEn: 'Need ethnic wear for wedding functions?',
+      descriptionHi: 'शादी समारोहों के लिए पारंपरिक पोशाक चाहिए?',
+      avgEarning: '₹500-3000',
+      timeRequired: '1 day',
+      successRate: '78%',
+      isDailyNeed: false,
+      gradient: 'from-amber-400 to-orange-500'
+    },
+    {
+      id: 'dance-costume',
+      icon: '💃',
+      titleEn: 'Dance Costume',
+      titleHi: 'नृत्य पोशाक',
+      descriptionEn: 'Performance coming up? Need a costume?',
+      descriptionHi: 'प्रदर्शन है? पोशाक चाहिए?',
+      avgEarning: '₹200-1000',
+      timeRequired: '1-2 days',
+      successRate: '75%',
+      isDailyNeed: false,
+      gradient: 'from-purple-400 to-pink-500'
+    },
+    {
+      id: 'bike-puncture',
+      icon: '🏍️',
+      titleEn: 'Bike Puncture',
+      titleHi: 'बाइक पंचर',
+      descriptionEn: 'Your bike got punctured on the road?',
+      descriptionHi: 'आपकी बाइक सड़क पर पंचर हो गई?',
+      avgEarning: '₹50-200',
+      timeRequired: '30 min',
+      successRate: '92%',
+      isDailyNeed: false,
       gradient: 'from-orange-400 to-amber-500'
+    },
+    {
+      id: 'fuel-empty',
+      icon: '⛽',
+      titleEn: 'Fuel Empty',
+      titleHi: 'ईंधन खत्म',
+      descriptionEn: 'Ran out of fuel? Need emergency delivery?',
+      descriptionHi: 'पेट्रोल खत्म? आपातकालीन डिलीवरी चाहिए?',
+      avgEarning: '₹100-300',
+      timeRequired: '30 min',
+      successRate: '90%',
+      isDailyNeed: false,
+      gradient: 'from-red-400 to-orange-500'
+    },
+    {
+      id: 'car-breakdown',
+      icon: '🚗',
+      titleEn: 'Car Breakdown',
+      titleHi: 'कार खराब',
+      descriptionEn: 'Car stopped working? Need immediate help?',
+      descriptionHi: 'कार बंद हो गई? तत्काल मदद चाहिए?',
+      avgEarning: '₹200-500',
+      timeRequired: '1 hr',
+      successRate: '85%',
+      isDailyNeed: false,
+      gradient: 'from-gray-500 to-slate-600'
+    },
+    {
+      id: 'bank-queue',
+      icon: '🏦',
+      titleEn: 'Bank Queue',
+      titleHi: 'बैंक लाइन',
+      descriptionEn: 'The bank queue is long. Can someone help?',
+      descriptionHi: 'बैंक की लाइन लंबी है। कोई मदद कर सकता है?',
+      avgEarning: '₹50-150',
+      timeRequired: '1-2 hrs',
+      successRate: '88%',
+      isDailyNeed: false,
+      gradient: 'from-blue-400 to-cyan-500'
+    },
+    {
+      id: 'govt-office',
+      icon: '🏛️',
+      titleEn: 'Govt Office',
+      titleHi: 'सरकारी कार्यालय',
+      descriptionEn: 'Need to visit a government office?',
+      descriptionHi: 'सरकारी कार्यालय जाना है?',
+      avgEarning: '₹100-300',
+      timeRequired: '2-4 hrs',
+      successRate: '82%',
+      isDailyNeed: false,
+      gradient: 'from-slate-500 to-gray-600'
+    },
+    {
+      id: 'form-filling',
+      icon: '📝',
+      titleEn: 'Form Filling',
+      titleHi: 'फॉर्म भरना',
+      descriptionEn: 'Need help filling official forms?',
+      descriptionHi: 'आधिकारिक फॉर्म भरने में मदद चाहिए?',
+      avgEarning: '₹50-200',
+      timeRequired: '30-60 min',
+      successRate: '90%',
+      isDailyNeed: false,
+      gradient: 'from-indigo-400 to-blue-500'
+    },
+    {
+      id: 'phone-battery',
+      icon: '🔋',
+      titleEn: 'Phone Battery',
+      titleHi: 'फोन बैटरी',
+      descriptionEn: 'Phone died? Need a charger urgently?',
+      descriptionHi: 'फोन बंद हो गया? तुरंत चार्जर चाहिए?',
+      avgEarning: '₹20-50',
+      timeRequired: '15 min',
+      successRate: '95%',
+      isDailyNeed: false,
+      gradient: 'from-green-400 to-emerald-500'
+    },
+    {
+      id: 'no-internet',
+      icon: '📶',
+      titleEn: 'No Internet',
+      titleHi: 'इंटरनेट नहीं',
+      descriptionEn: 'Internet down? Need urgent WiFi hotspot?',
+      descriptionHi: 'इंटरनेट बंद? तत्काल WiFi हॉटस्पॉट चाहिए?',
+      avgEarning: '₹20-50',
+      timeRequired: '15 min',
+      successRate: '93%',
+      isDailyNeed: false,
+      gradient: 'from-blue-400 to-indigo-500'
+    },
+    {
+      id: 'laptop-issue',
+      icon: '💻',
+      titleEn: 'Laptop Issue',
+      titleHi: 'लैपटॉप समस्या',
+      descriptionEn: 'Laptop not working? Need quick tech help?',
+      descriptionHi: 'लैपटॉप काम नहीं कर रहा? त्वरित तकनीकी मदद चाहिए?',
+      avgEarning: '₹100-300',
+      timeRequired: '1-2 hrs',
+      successRate: '80%',
+      isDailyNeed: false,
+      gradient: 'from-gray-400 to-slate-500'
+    },
+    {
+      id: 'medicine-delivery',
+      icon: '💊',
+      titleEn: 'Medicine Delivery',
+      titleHi: 'दवा डिलीवरी',
+      descriptionEn: 'Need urgent medicine delivery?',
+      descriptionHi: 'तत्काल दवा डिलीवरी चाहिए?',
+      avgEarning: '₹30-100',
+      timeRequired: '30 min',
+      successRate: '94%',
+      isDailyNeed: false,
+      gradient: 'from-green-500 to-teal-500'
+    },
+    {
+      id: 'first-aid',
+      icon: '🩹',
+      titleEn: 'First Aid',
+      titleHi: 'प्राथमिक चिकित्सा',
+      descriptionEn: 'Minor injury? Need first aid help?',
+      descriptionHi: 'मामूली चोट? प्राथमिक चिकित्सा मदद चाहिए?',
+      avgEarning: '₹50-150',
+      timeRequired: '15 min',
+      successRate: '92%',
+      isDailyNeed: false,
+      gradient: 'from-red-400 to-pink-500'
+    },
+    {
+      id: 'hospital-route',
+      icon: '🚑',
+      titleEn: 'Hospital Route',
+      titleHi: 'अस्पताल मार्ग',
+      descriptionEn: 'Need directions to the nearest hospital?',
+      descriptionHi: 'निकटतम अस्पताल का मार्ग चाहिए?',
+      avgEarning: '₹50-200',
+      timeRequired: '15-30 min',
+      successRate: '96%',
+      isDailyNeed: false,
+      gradient: 'from-red-500 to-rose-600'
+    },
+    {
+      id: 'tools-needed',
+      icon: '🔧',
+      titleEn: 'Tools Needed',
+      titleHi: 'उपकरण चाहिए',
+      descriptionEn: 'Could someone have the tools you need?',
+      descriptionHi: 'क्या किसी के पास आपको चाहिए टूल्स हो सकते हैं?',
+      avgEarning: '₹30-100',
+      timeRequired: '30 min',
+      successRate: '85%',
+      isDailyNeed: false,
+      gradient: 'from-gray-500 to-zinc-600'
+    },
+    {
+      id: 'ladder-needed',
+      icon: '🪜',
+      titleEn: 'Ladder Needed',
+      titleHi: 'सीढ़ी चाहिए',
+      descriptionEn: 'Need a ladder for a quick fix?',
+      descriptionHi: 'जल्दी ठीक करने के लिए सीढ़ी चाहिए?',
+      avgEarning: '₹30-80',
+      timeRequired: '15-30 min',
+      successRate: '88%',
+      isDailyNeed: false,
+      gradient: 'from-amber-400 to-yellow-500'
+    },
+    {
+      id: 'electric-issue',
+      icon: '⚡',
+      titleEn: 'Electric Issue',
+      titleHi: 'बिजली समस्या',
+      descriptionEn: 'Sudden electrical problem at home?',
+      descriptionHi: 'घर में अचानक बिजली की समस्या?',
+      avgEarning: '₹100-400',
+      timeRequired: '1-2 hrs',
+      successRate: '82%',
+      isDailyNeed: false,
+      gradient: 'from-yellow-400 to-amber-500'
+    },
+    {
+      id: 'parcel-pickup',
+      icon: '📦',
+      titleEn: 'Parcel Pickup',
+      titleHi: 'पार्सल पिकअप',
+      descriptionEn: 'Need someone to pick up your parcel?',
+      descriptionHi: 'आपका पार्सल पिकअप करने के लिए कोई चाहिए?',
+      avgEarning: '₹30-80',
+      timeRequired: '30 min',
+      successRate: '90%',
+      isDailyNeed: false,
+      gradient: 'from-orange-400 to-red-400'
+    },
+    {
+      id: 'grocery-needed',
+      icon: '🛒',
+      titleEn: 'Grocery Needed',
+      titleHi: 'किराना चाहिए',
+      descriptionEn: 'Sudden need for groceries?',
+      descriptionHi: 'अचानक किराने की ज़रूरत?',
+      avgEarning: '₹30-100',
+      timeRequired: '30-60 min',
+      successRate: '92%',
+      isDailyNeed: false,
+      gradient: 'from-green-400 to-emerald-500'
+    },
+    {
+      id: 'document-delivery',
+      icon: '📄',
+      titleEn: 'Document Delivery',
+      titleHi: 'दस्तावेज़ डिलीवरी',
+      descriptionEn: 'Need urgent document delivery?',
+      descriptionHi: 'तत्काल दस्तावेज़ डिलीवरी चाहिए?',
+      avgEarning: '₹50-150',
+      timeRequired: '1 hr',
+      successRate: '91%',
+      isDailyNeed: false,
+      gradient: 'from-blue-400 to-indigo-500'
+    },
+    {
+      id: 'tent-event',
+      icon: '🎪',
+      titleEn: 'Tent Event',
+      titleHi: 'टेंट कार्यक्रम',
+      descriptionEn: 'Planning an event? Need tent setup?',
+      descriptionHi: 'कार्यक्रम की योजना? टेंट सेटअप चाहिए?',
+      avgEarning: '₹500-2000',
+      timeRequired: '4-8 hrs',
+      successRate: '78%',
+      isDailyNeed: false,
+      gradient: 'from-purple-400 to-violet-500'
+    },
+    {
+      id: 'chairs-needed',
+      icon: '🪑',
+      titleEn: 'Chairs Needed',
+      titleHi: 'कुर्सियां चाहिए',
+      descriptionEn: 'Need extra chairs for a gathering?',
+      descriptionHi: 'समारोह के लिए अतिरिक्त कुर्सियां चाहिए?',
+      avgEarning: '₹100-300',
+      timeRequired: '2 hrs',
+      successRate: '85%',
+      isDailyNeed: false,
+      gradient: 'from-amber-400 to-orange-500'
+    },
+    {
+      id: 'sound-system',
+      icon: '🔊',
+      titleEn: 'Sound System',
+      titleHi: 'साउंड सिस्टम',
+      descriptionEn: 'Need sound system for an event?',
+      descriptionHi: 'कार्यक्रम के लिए साउंड सिस्टम चाहिए?',
+      avgEarning: '₹500-2000',
+      timeRequired: '2-4 hrs',
+      successRate: '75%',
+      isDailyNeed: false,
+      gradient: 'from-slate-500 to-gray-600'
+    },
+    {
+      id: 'sports-gear',
+      icon: '⚽',
+      titleEn: 'Sports Gear',
+      titleHi: 'खेल का सामान',
+      descriptionEn: 'Need sports equipment for a game?',
+      descriptionHi: 'खेल के लिए खेल का सामान चाहिए?',
+      avgEarning: '₹50-200',
+      timeRequired: '2-4 hrs',
+      successRate: '82%',
+      isDailyNeed: false,
+      gradient: 'from-green-500 to-teal-500'
+    },
+    {
+      id: 'gym-equipment',
+      icon: '🏋️',
+      titleEn: 'Gym Equipment',
+      titleHi: 'जिम उपकरण',
+      descriptionEn: 'Need gym equipment temporarily?',
+      descriptionHi: 'अस्थायी रूप से जिम उपकरण चाहिए?',
+      avgEarning: '₹100-300',
+      timeRequired: '1-7 days',
+      successRate: '70%',
+      isDailyNeed: false,
+      gradient: 'from-red-400 to-orange-500'
+    },
+    {
+      id: 'cycle-needed',
+      icon: '🚲',
+      titleEn: 'Cycle Needed',
+      titleHi: 'साइकिल चाहिए',
+      descriptionEn: 'Need a cycle for short commute?',
+      descriptionHi: 'छोटी यात्रा के लिए साइकिल चाहिए?',
+      avgEarning: '₹50-150',
+      timeRequired: '1-4 hrs',
+      successRate: '88%',
+      isDailyNeed: false,
+      gradient: 'from-teal-400 to-cyan-500'
+    },
+    {
+      id: 'pet-care',
+      icon: '🐾',
+      titleEn: 'Pet Care',
+      titleHi: 'पालतू देखभाल',
+      descriptionEn: 'Need someone to watch your pet?',
+      descriptionHi: 'आपके पालतू को देखने के लिए कोई चाहिए?',
+      avgEarning: '₹100-300',
+      timeRequired: '2-8 hrs',
+      successRate: '90%',
+      isDailyNeed: false,
+      gradient: 'from-amber-400 to-yellow-500'
+    },
+    {
+      id: 'plant-care',
+      icon: '🌱',
+      titleEn: 'Plant Care',
+      titleHi: 'पौधे की देखभाल',
+      descriptionEn: 'Going away? Need plant watering help?',
+      descriptionHi: 'कहीं जा रहे हैं? पौधों को पानी देने में मदद चाहिए?',
+      avgEarning: '₹50-150',
+      timeRequired: '15 min',
+      successRate: '92%',
+      isDailyNeed: false,
+      gradient: 'from-green-400 to-emerald-500'
+    },
+    {
+      id: 'photo-needed',
+      icon: '📸',
+      titleEn: 'Photo Needed',
+      titleHi: 'फोटो चाहिए',
+      descriptionEn: 'Need passport photo or quick photography?',
+      descriptionHi: 'पासपोर्ट फोटो या त्वरित फोटोग्राफी चाहिए?',
+      avgEarning: '₹50-200',
+      timeRequired: '30 min',
+      successRate: '85%',
+      isDailyNeed: false,
+      gradient: 'from-purple-400 to-pink-500'
     }
   ]
 
@@ -319,51 +882,55 @@ export function HomeScreen() {
           </Card>
         </motion.div>
 
-        {/* Pause Moment Cards */}
+        {/* All Help Categories - 45 Cards Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="px-4 py-4"
         >
-          <h3 className={`font-bold text-lg mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Think for a moment...
-          </h3>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              Help Categories
+            </h3>
+            <Badge className="bg-orange-500 text-white text-xs font-bold">
+              {allHelpCards.length} Categories
+            </Badge>
+          </div>
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-4`}>
-            एक बार सोचो...
+            मदद की श्रेणियाँ • Tap to see income story
           </p>
           
-          <div className="space-y-3">
-            {pauseMomentCards.map((card, idx) => (
-              <motion.div
+          <div className="grid grid-cols-3 gap-2">
+            {allHelpCards.map((card, idx) => (
+              <motion.button
                 key={card.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                whileHover={{ scale: 1.01 }}
-                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.02 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  setSelectedHelpCard(card)
+                  setShowIncomeStory(true)
+                }}
+                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden border ${darkMode ? 'border-gray-700' : 'border-gray-100'} relative`}
               >
                 <div className={`h-1 bg-gradient-to-r ${card.gradient}`} />
-                <div className="p-4 flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-2xl shadow-lg flex-shrink-0`}>
+                <div className="p-3 text-center">
+                  <div className={`w-10 h-10 mx-auto rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-xl shadow-md mb-2`}>
                     {card.icon}
                   </div>
-                  <div className="flex-1">
-                    <p className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>
-                      {card.situationEn}
-                    </p>
-                    <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'} mb-2`}>
-                      {card.situationHi}
-                    </p>
-                    <p className={`text-sm font-medium ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-                      {card.questionEn}
-                    </p>
-                    <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                      {card.questionHi}
-                    </p>
-                  </div>
+                  <p className={`text-xs font-semibold line-clamp-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    {card.titleEn}
+                  </p>
+                  {card.isDailyNeed && (
+                    <Badge className="bg-orange-500 text-white text-[10px] mt-1 px-1.5 py-0.5 font-bold">
+                      Daily
+                    </Badge>
+                  )}
                 </div>
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         </motion.div>
@@ -779,6 +1346,13 @@ export function HomeScreen() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Income Story Modal */}
+      <IncomeStoryModal
+        isOpen={showIncomeStory}
+        onClose={() => setShowIncomeStory(false)}
+        category={selectedHelpCard!}
+      />
 
       {/* Bottom Navigation - Fixed Footer */}
       <nav className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-gray-800/95' : 'bg-white/95'} backdrop-blur-xl border-t ${darkMode ? 'border-gray-700' : 'border-orange-100'} shadow-2xl z-40`}>
