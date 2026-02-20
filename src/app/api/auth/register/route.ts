@@ -65,12 +65,6 @@ export async function POST(request: Request) {
     // Generate referral code
     const referralCode = `H2E-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
 
-    // Calculate area code from coordinates (simplified)
-    let areaCode = 'AREA-001'
-    if (lat && lng) {
-      areaCode = `AREA-${Math.floor(lat * 10)}-${Math.floor(lng * 10)}`
-    }
-
     // Store password in badges field as JSON (temporary solution)
     // In production, add a dedicated password field with bcrypt
     const badges = JSON.stringify({ 
@@ -78,7 +72,7 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString()
     })
 
-    // Create user
+    // Create user (areaCode is optional - will be set when area activates)
     const user = await db.user.create({
       data: {
         phone,
@@ -87,7 +81,7 @@ export async function POST(request: Request) {
         badges,
         lat: lat || null,
         lng: lng || null,
-        areaCode,
+        areaCode: null, // Will be set when area activates
         trustScore: 50, // Default trust score
         registeredIP: request.headers.get('x-forwarded-for') || 'unknown',
         lastLoginIP: request.headers.get('x-forwarded-for') || 'unknown'
