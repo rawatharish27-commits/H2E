@@ -68,8 +68,8 @@ export default function Home() {
       // Request location immediately on app start
       requestLocation()
       
-      // Splash delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Splash delay - 10 seconds
+      await new Promise(resolve => setTimeout(resolve, 10000))
       
       setIsLoading(false)
     }
@@ -104,11 +104,12 @@ export default function Home() {
           setScreen('subscription')
         }
       } else {
-        // New user flow: Explain → Share → Login → OTP → Subscription → Home
+        // New user flow: Splash → Welcome → Referral → Login → OTP → Subscription → Home
         const hasSeenWelcome = localStorage.getItem('hasSeenWelcome')
         
+        // Always show welcome screen for new users (hasSeenWelcome not set)
         if (!hasSeenWelcome) {
-          // First time - show explain screens
+          // First time - show welcome screen
           setScreen('welcome')
         } else {
           // Returning user - go to login
