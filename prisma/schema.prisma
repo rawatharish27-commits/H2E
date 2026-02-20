@@ -109,6 +109,7 @@ model User {
   referredBy      String?
   referralCount   Int     @default(0)
   activeReferrals Int     @default(0) // Referrals who completed first task - FOR LEADER UNLOCK
+  hasSharedReferral Boolean @default(false) // User must share before login
 
   // Referral earnings (₹5 per active referral)
   referralEarnings  Float @default(0) // Total earned from referrals

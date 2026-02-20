@@ -319,11 +319,11 @@ export function PreLoginShareScreen() {
       <div className="px-6 pb-6">
         <Button
           onClick={handleContinue}
-          disabled={isVerifying}
+          disabled={!shared || isVerifying}
           className={`w-full h-14 rounded-2xl font-bold text-lg shadow-xl ${
             shared 
               ? 'bg-green-500 hover:bg-green-600 text-white' 
-              : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
+              : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
           }`}
         >
           {isVerifying ? (
@@ -335,10 +335,20 @@ export function PreLoginShareScreen() {
             </>
           ) : (
             <>
-              Continue to Login / लॉगिन करें <ArrowRight className="w-5 h-5 ml-2" />
+              🔒 Share First to Unlock / पहले शेयर करें
             </>
           )}
         </Button>
+        
+        {!shared && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-sm text-orange-600 dark:text-orange-400 mt-2"
+          >
+            ⚠️ Apna code share karo, tab hi login kar sakte ho!
+          </motion.p>
+        )}
         
         {shared && (
           <motion.p
