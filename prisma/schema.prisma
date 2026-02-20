@@ -48,6 +48,7 @@ model User {
   lng           Float?
   locationUpdatedAt DateTime?
   lastActiveAt  DateTime @default(now())
+  areaCode      String?  // 20km zone identifier
   
   // Status - Security Enhanced
   isBlocked     Boolean  @default(false)
@@ -61,6 +62,15 @@ model User {
   referredBy         String?
   referralCount      Int      @default(0)
   referralRewards    Int      @default(0) // Days earned from referrals
+  
+  // Leader System
+  isLeader           Boolean  @default(false)
+  leaderLevel        String   @default("NONE") // NONE, BRONZE, SILVER, GOLD, AMBASSADOR
+  referredByLeaderId String?  // If this user was referred by a leader
+  
+  // KYC Status
+  kycVerified        Boolean  @default(false)
+  kycSubmittedAt     DateTime?
   
   // Badges
   badges        String?  // JSON array of badge IDs
@@ -98,6 +108,8 @@ model User {
   securityAudits SecurityAudit[]
   adminRoles    AdminAssignment[]
   whatsappNotifications WhatsAppNotification[]
+  leaderProfile Leader?
+  referredByLeader Leader? @relation("LeaderReferrals", fields: [referredByLeaderId], references: [id])
 
   @@index([phone])
   @@index([trustScore])
@@ -107,6 +119,8 @@ model User {
   @@index([isFlagged])
   @@index([whatsappEnabled])
   @@index([whatsappNumber])
+  @@index([isLeader])
+  @@index([areaCode])
 }
 
 // Session model for JWT management
@@ -656,4 +670,80 @@ model HelperRegistration {
   @@index([helperId])
   @@index([status])
   @@index([rank])
+}
+
+// Leader System - Area Leaders with commission
+model Leader {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  
+  // Area Info
+  areaCode        String   // 20km zone identifier
+  areaName        String   // e.g., "Dehradun Central"
+  
+  // Leader Level
+  level           String   @default("BRONZE") // BRONZE, SILVER, GOLD, AMBASSADOR
+  
+  // Connected Users (direct referrals)
+  connectedUsers  Int      @default(0)
+  
+  // Commission Stats
+  totalCommission Float    @default(0)
+  monthlyCommission Float  @default(0)
+  pendingCommission Float  @default(0)
+  withdrawnCommission Float @default(0)
+  
+  // Unlock Requirements Met
+  helpsCompleted  Int      @default(0)
+  avgRating       Float    @default(0)
+  kycVerified     Boolean  @default(false)
+  
+  // Status
+  isActive        Boolean  @default(true)
+  unlockedAt      DateTime?
+  
+  // Milestones
+  bronzeUnlocked  Boolean  @default(false)
+  silverUnlocked  Boolean  @default(false)
+  goldUnlocked    Boolean  @default(false)
+  ambassadorUnlocked Boolean @default(false)
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaderReferrals User[]   @relation("LeaderReferrals")
+  commissions     LeaderCommission[]
+
+  @@index([areaCode])
+  @@index([level])
+  @@index([isActive])
+}
+
+// Leader Commission - Track all commission transactions
+model LeaderCommission {
+  id              String   @id @default(cuid())
+  leaderId        String
+  
+  // Commission Details
+  helpId          String?  // Reference to the completed help
+  amount          Float
+  commissionRate  Float    @default(0.005) // 0.5%
+  
+  // Status
+  status          String   @default("PENDING") // PENDING, CREDITED, WITHDRAWN
+  
+  // Metadata
+  description     String?
+  createdAt       DateTime @default(now())
+  creditedAt      DateTime?
+  
+  // Relations
+  leader          Leader   @relation(fields: [leaderId], references: [id], onDelete: Cascade)
+
+  @@index([leaderId])
+  @@index([status])
+  @@index([createdAt])
 }

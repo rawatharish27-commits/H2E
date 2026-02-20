@@ -24,6 +24,7 @@ export interface User {
   // Location
   lat: number | null
   lng: number | null
+  areaCode: string | null
   
   // Status
   isBlocked: boolean
@@ -41,6 +42,14 @@ export interface User {
   referredBy: string | null
   referralCount: number
   referralRewards: number
+  
+  // Leader System
+  isLeader: boolean
+  leaderLevel: 'NONE' | 'BRONZE' | 'SILVER' | 'GOLD' | 'AMBASSADOR'
+  referredByLeaderId: string | null
+  
+  // KYC
+  kycVerified: boolean
   
   // Badges
   badges: string[]
@@ -244,6 +253,7 @@ export type AppScreen =
   | 'privacy'
   | 'legal'
   | 'username'
+  | 'leader-dashboard'
 
 // WhatsApp Notification Types
 export type WhatsAppNotificationStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED' | 'READ'

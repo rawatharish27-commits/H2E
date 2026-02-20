@@ -23,6 +23,7 @@ import { ContactScreen } from '@/components/app/ContactScreen'
 import { PrivacyScreen } from '@/components/app/PrivacyScreen'
 import { LegalScreen } from '@/components/app/LegalScreen'
 import { UserDashboard } from '@/components/app/UserDashboard'
+import { LeaderDashboardScreen } from '@/components/app/LeaderDashboardScreen'
 import SplashScreen from '@/components/ui/SplashScreen'
 
 export default function Home() {
@@ -169,6 +170,10 @@ export default function Home() {
         return <PrivacyScreen />
       case 'legal':
         return <LegalScreen />
+      case 'leader-dashboard':
+        return <LeaderDashboardScreen />
+      case 'referral':
+        return <PreLoginShareScreen />
       default:
         return <HomeScreen />
     }
