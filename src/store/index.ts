@@ -15,8 +15,15 @@ export interface SOSAlert {
   resolvedAt?: Date
 }
 
-// Module-level variable for location tracking
-let locationWatchId: number | null = null
+// Location Address type
+export interface LocationAddress {
+  village: string
+  city: string
+  state: string
+  pincode: string
+  country: string
+  displayName: string
+}
 
 interface AppState {
   // Auth
@@ -33,6 +40,7 @@ interface AppState {
   // Location
   location: Location | null
   locationError: string | null
+  locationAddress: LocationAddress | null // Address details from reverse geocoding
   
   // Problems
   nearbyProblems: Problem[]
@@ -78,9 +86,9 @@ interface AppActions {
   // Location
   setLocation: (location: Location | null) => void
   setLocationError: (error: string | null) => void
-  requestLocation: () => Promise<void>
-  startLocationTracking: () => void
-  stopLocationTracking: () => void
+  setLocationAddress: (address: LocationAddress | null) => void
+  requestLocation: () => Promise<Location | null>
+  fetchLocationAddress: (lat: number, lng: number) => Promise<LocationAddress | null>
   
   // Problems
   setNearbyProblems: (problems: Problem[]) => void
@@ -133,6 +141,7 @@ const initialState: AppState = {
   previousScreen: null,
   location: null,
   locationError: null,
+  locationAddress: null,
   nearbyProblems: [],
   myProblems: [],
   selectedProblem: null,
@@ -167,7 +176,9 @@ export const useAppStore = create<AppState & AppActions>()(
         user: null,
         loginPhone: null,
         loginName: null,
-        isAuthenticated: false 
+        isAuthenticated: false,
+        location: null,
+        locationAddress: null
       }),
 
       // Navigation
@@ -183,11 +194,13 @@ export const useAppStore = create<AppState & AppActions>()(
       // Location
       setLocation: (location) => set({ location, locationError: null }),
       setLocationError: (error) => set({ locationError: error }),
+      setLocationAddress: (address) => set({ locationAddress: address }),
       
+      // Request location - only when user is actively using app
       requestLocation: async () => {
         if (typeof window === 'undefined' || !navigator.geolocation) {
           set({ locationError: 'Location not supported / स्थान समर्थित नहीं है' })
-          return
+          return null
         }
 
         try {
@@ -195,20 +208,24 @@ export const useAppStore = create<AppState & AppActions>()(
             navigator.geolocation.getCurrentPosition(resolve, reject, {
               enableHighAccuracy: true,
               timeout: 15000,
-              maximumAge: 0,
+              maximumAge: 60000, // Cache for 1 minute
             })
           })
 
+          const newLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          }
+
           set({
-            location: {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            },
+            location: newLocation,
             locationError: null,
           })
           
-          // Start continuous tracking after successful initial location
-          get().startLocationTracking()
+          // Fetch address details
+          get().fetchLocationAddress(newLocation.lat, newLocation.lng)
+          
+          return newLocation
         } catch (error: unknown) {
           const geoError = error as GeolocationPositionError
           let errorMsg = 'Please enable location access / कृपया स्थान एक्सेस सक्षम करें'
@@ -222,45 +239,24 @@ export const useAppStore = create<AppState & AppActions>()(
           }
           
           set({ locationError: errorMsg })
+          return null
         }
       },
       
-      startLocationTracking: () => {
-        if (typeof window === 'undefined' || !navigator.geolocation) return
-        
-        // Stop any existing watch
-        if (locationWatchId !== null) {
-          navigator.geolocation.clearWatch(locationWatchId)
-        }
-        
-        // Start watching position for real-time updates
-        locationWatchId = navigator.geolocation.watchPosition(
-          (position) => {
-            set({
-              location: {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-              },
-              locationError: null,
-            })
-          },
-          (error) => {
-            console.error('Location watch error:', error)
-            // Don't show error for watch failures, keep last known location
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 30000,
-            maximumAge: 10000, // Accept locations up to 10 seconds old
+      // Fetch address from coordinates using reverse geocoding
+      fetchLocationAddress: async (lat: number, lng: number) => {
+        try {
+          const res = await fetch(`/api/location/reverse?lat=${lat}&lng=${lng}`)
+          const data = await res.json()
+          
+          if (data.success && data.location) {
+            set({ locationAddress: data.location })
+            return data.location
           }
-        )
-      },
-      
-      stopLocationTracking: () => {
-        if (locationWatchId !== null && typeof navigator !== 'undefined') {
-          navigator.geolocation.clearWatch(locationWatchId)
-          locationWatchId = null
+        } catch (error) {
+          console.error('Failed to fetch location address:', error)
         }
+        return null
       },
 
       // Problems
@@ -410,6 +406,8 @@ export const useAppStore = create<AppState & AppActions>()(
         usedReferralCode: state.usedReferralCode,
         loginPhone: state.loginPhone,
         loginName: state.loginName,
+        location: state.location,
+        locationAddress: state.locationAddress,
       }),
     }
   )

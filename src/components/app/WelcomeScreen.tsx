@@ -317,9 +317,12 @@ const EXPLAIN_SCREENS = [
 
 export function WelcomeScreen() {
   const [currentScreen, setCurrentScreen] = useState(0)
-  const { setScreen, setTempReferralCode, darkMode } = useAppStore()
+  const { setScreen, setTempReferralCode, darkMode, locationAddress } = useAppStore()
   const screen = EXPLAIN_SCREENS[currentScreen]
   const Icon = screen.icon
+  
+  // Get location display name
+  const locationDisplayName = locationAddress?.displayName || locationAddress?.city || locationAddress?.village || ''
   
   const handleNext = () => {
     if (currentScreen < EXPLAIN_SCREENS.length - 1) {
@@ -386,7 +389,7 @@ export function WelcomeScreen() {
           <div className="flex items-center gap-2">
             <Heart className="w-4 h-4 text-red-500" />
             <p className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              People Need Help Nearby
+              {locationDisplayName ? `People Need Help in ${locationDisplayName}` : 'People Need Help Nearby'}
             </p>
           </div>
           <Badge className="bg-red-100 text-red-700 text-xs">
