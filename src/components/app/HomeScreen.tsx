@@ -648,6 +648,67 @@ export function HomeScreen() {
           </div>
         </motion.div>
 
+        {/* Featured Services Section (addon for empty app feel) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.04 }}
+          className="mx-4 mt-4"
+        >
+          <div className={`rounded-2xl p-4 ${darkMode ? 'bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-800' : 'bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className={`font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <span className="text-xl">🏪</span>
+                  Available Services Nearby
+                </h3>
+                <p className={`text-xs ${darkMode ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                  20 services • Price ranges visible • Real providers
+                </p>
+              </div>
+              <Badge className="bg-emerald-500/20 text-emerald-600 dark:bg-emerald-500/30 dark:text-emerald-300">
+                View All →
+              </Badge>
+            </div>
+            
+            {/* Services Carousel */}
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+              {[
+                { icon: '🏍️', name: 'Bike Repair', price: '₹50-150', rating: 4.8, provider: 'Raju' },
+                { icon: '⛽', name: 'Fuel Delivery', price: '₹100-500', rating: 4.6, provider: 'Vikram' },
+                { icon: '💊', name: 'Medicine', price: '₹30-100', rating: 4.9, provider: 'Priya' },
+                { icon: '🔧', name: 'Tools Rent', price: '₹100-200', rating: 4.6, provider: 'Suresh' },
+                { icon: '🪜', name: 'Ladder Rent', price: '₹50-100', rating: 4.5, provider: 'Harish' },
+              ].map((service, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 + idx * 0.05 }}
+                  className={`flex-shrink-0 w-28 p-3 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">{service.icon}</div>
+                    <p className={`text-xs font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {service.name}
+                    </p>
+                    <p className="text-xs font-bold text-green-600">{service.price}</p>
+                    <div className="flex items-center justify-center gap-1 mt-1">
+                      <Star className="w-2.5 h-2.5 text-yellow-500" />
+                      <span className={`text-[10px] ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {service.rating}
+                      </span>
+                    </div>
+                    <p className={`text-[10px] ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      by {service.provider}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
         {/* All Help Cards - Unified Grid (15 Daily Need + 30 Situational = 45 cards) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

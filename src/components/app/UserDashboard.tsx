@@ -22,10 +22,13 @@ import {
   X,
   Crown,
   Timer,
-  Navigation
+  Navigation,
+  Sparkles
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { Problem, ProblemType, formatDistance, formatPrice, formatDate, getTrustBadge } from '@/types'
+import { SeededServicesGrid, SeededServiceModal } from './SeededServicesGrid'
+import type { SeededService } from '@/data/seededServices'
 
 interface HelperStatus {
   registered: boolean
@@ -45,6 +48,11 @@ export function UserDashboard() {
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null)
   const [registeringId, setRegisteringId] = useState<string | null>(null)
   const [helperStatuses, setHelperStatuses] = useState<Record<string, HelperStatus>>({})
+  
+  // Seeded services state (addon for empty app feel)
+  const [seededServices, setSeededServices] = useState<SeededService[]>([])
+  const [selectedSeededService, setSelectedSeededService] = useState<SeededService | null>(null)
+  const [showSeededServices, setShowSeededServices] = useState(false)
 
   const isActive = isSubscriptionActive()
 
@@ -80,6 +88,11 @@ export function UserDashboard() {
       if (data.success) {
         setProblems(data.problems)
         
+        // If no problems, fetch seeded services (addon for empty app feel)
+        if (data.problems.length === 0) {
+          fetchSeededServices()
+        }
+        
         // Fetch helper status for each problem if user is paid
         if (isActive) {
           data.problems.forEach((p: Problem) => {
@@ -88,13 +101,31 @@ export function UserDashboard() {
         }
       } else {
         setError(data.error || 'Failed to fetch requests')
+        // Fetch seeded services on error too
+        fetchSeededServices()
       }
     } catch {
       setError('Something went wrong / कुछ गलत हो गया')
+      // Fetch seeded services on error
+      fetchSeededServices()
     } finally {
       setIsLoading(false)
     }
   }, [user, location, isActive])
+
+  // Fetch seeded services (addon for empty app feel)
+  const fetchSeededServices = async () => {
+    try {
+      const res = await fetch('/api/seeded-services?action=services&count=20')
+      const data = await res.json()
+      if (data.success) {
+        setSeededServices(data.services)
+        setShowSeededServices(true)
+      }
+    } catch {
+      // Ignore
+    }
+  }
 
   const fetchHelperStatus = async (problemId: string) => {
     if (!user) return
@@ -393,19 +424,58 @@ export function UserDashboard() {
             </Button>
           </div>
         ) : problems.length === 0 ? (
-          <div className="text-center py-12">
-            <div className={`w-20 h-20 mx-auto mb-4 rounded-3xl ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center`}>
-              <HandHeart className={`w-10 h-10 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-            </div>
-            <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              No requests found nearby
-            </h3>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Be the first to post a help request
-            </p>
-            <p className={`text-sm mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              पास में कोई अनुरोध नहीं मिला
-            </p>
+          <div className="space-y-4">
+            {showSeededServices && seededServices.length > 0 ? (
+              // Show seeded services when no real problems exist
+              <SeededServicesGrid 
+                services={seededServices} 
+                darkMode={darkMode}
+                onSelectService={setSelectedSeededService}
+              />
+            ) : (
+              // Original empty state
+              <div className="text-center py-12">
+                <div className={`w-20 h-20 mx-auto mb-4 rounded-3xl ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center`}>
+                  <HandHeart className={`w-10 h-10 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+                </div>
+                <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  No requests found nearby
+                </h3>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Be the first to post a help request
+                </p>
+                <p className={`text-sm mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                  पास में कोई अनुरोध नहीं मिला
+                </p>
+              </div>
+            )}
+            
+            {/* Post Request CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-orange-900/30 to-red-900/30 border-orange-700' : 'bg-gradient-to-r from-orange-50 to-red-50 border-orange-200'} border`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-xl ${darkMode ? 'bg-orange-800' : 'bg-orange-100'} flex items-center justify-center`}>
+                  <Sparkles className="w-6 h-6 text-orange-500" />
+                </div>
+                <div className="flex-1">
+                  <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Want to post a help request?
+                  </p>
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Get help from people nearby
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setScreen('post-problem')}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl"
+                >
+                  Post
+                </Button>
+              </div>
+            </motion.div>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
@@ -751,6 +821,13 @@ export function UserDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Seeded Service Modal (addon for empty app feel) */}
+      <SeededServiceModal 
+        service={selectedSeededService}
+        darkMode={darkMode}
+        onClose={() => setSelectedSeededService(null)}
+      />
 
       {/* Footer */}
       <footer className={`sticky bottom-0 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-t ${darkMode ? 'border-gray-700' : 'border-gray-100'} p-4`}>
