@@ -99,7 +99,7 @@ function SplashScreen() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="absolute top-8"
+        className="absolute top-8 z-50"
       >
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
           <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -108,7 +108,9 @@ function SplashScreen() {
       </motion.div>
 
       {/* Logo */}
-      <LogoLarge />
+      <div className="relative z-10 mt-12">
+        <LogoLarge />
+      </div>
 
       {/* Live Stats */}
       <motion.div
@@ -178,7 +180,7 @@ function SplashScreen() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="absolute bottom-8 flex justify-center gap-8"
+        className="absolute bottom-8 z-50 flex justify-center gap-8"
       >
         <div className="flex flex-col items-center">
           <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-1">
