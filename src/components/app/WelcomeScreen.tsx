@@ -480,7 +480,6 @@ export function WelcomeScreen() {
   const handleGetStarted = () => {
     const tempCode = `TEMP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
     setTempReferralCode(tempCode)
-    localStorage.setItem('hasSeenWelcome', 'true')
     setScreen('pre-login-share')
   }
   

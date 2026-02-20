@@ -67,6 +67,9 @@ export function PreLoginShareScreen() {
   }
   
   const handleContinue = async () => {
+    // Mark that user has completed welcome flow
+    localStorage.setItem('hasSeenWelcome', 'true')
+    
     // If user has a referral code, verify it first
     if (referralInput.trim()) {
       setIsVerifying(true)
