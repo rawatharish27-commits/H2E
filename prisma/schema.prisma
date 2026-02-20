@@ -1,5 +1,6 @@
 // Help2Earn - Production-Grade PostgreSQL Schema
-// Comprehensive A-to-Z Security Risk Map Implementation
+// Hyperlocal Task & Earning Network (20km radius)
+// Referral growth + Real activity based earning - No MLM, No Fake Guarantee
 
 generator client {
   provider        = "prisma-client-js"
@@ -12,6 +13,44 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
 }
+
+// ==================== AREA SYSTEM ====================
+
+// Area Activation - Track area stats for activation
+model Area {
+  id              String   @id @default(cuid())
+  areaCode        String   @unique // 20km zone identifier
+  areaName        String   // e.g., "Dehradun Central"
+  
+  // Activation Requirements
+  registeredUsers Int      @default(0) // Need 50 minimum
+  weeklyTasks     Int      @default(0) // Need 10 minimum
+  taskProviders   Int      @default(0) // Need 5 minimum
+  
+  // Status
+  isActive        Boolean  @default(false) // Active when all requirements met
+  activatedAt     DateTime?
+  
+  // Leader Slots (max 3 per area)
+  maxLeaderSlots  Int      @default(3)
+  currentLeaders  Int      @default(0)
+  
+  // Stats
+  totalUsers      Int      @default(0)
+  totalTasks      Int      @default(0)
+  totalEarnings   Float    @default(0)
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  leaders         Leader[]
+
+  @@index([areaCode])
+  @@index([isActive])
+}
+
+// ==================== USER SYSTEM ====================
 
 // User model - Both client and helper
 model User {
@@ -31,9 +70,10 @@ model User {
   noShowCount   Int      @default(0)
   noShowStrikes Int      @default(0) // 3 strikes = invisible
   reportCount   Int      @default(0)
-  helpfulCount  Int      @default(0) // Number of successful helps
+  helpfulCount  Int      @default(0) // Number of successful helps - FOR LEADER UNLOCK
   ratingSum     Int      @default(0) // Sum of all ratings
   ratingCount   Int      @default(0) // Number of ratings
+  avgRating     Float    @default(0) // Calculated average rating - FOR LEADER UNLOCK
   
   // Location (foreground only)
   lat           Float?
@@ -49,23 +89,53 @@ model User {
   isFlagged     Boolean  @default(false) // Under review
   blockedTill   DateTime?
   
-  // Referral System
+  // ==================== ANTI-FRAUD FIELDS ====================
+  // Device binding
+  deviceFingerprint String? @unique // Primary device ID
+  
+  // IP tracking
+  registeredIP   String?  // IP at registration
+  lastLoginIP    String?  // Last login IP
+  ipHistory      String?  // JSON array of recent IPs
+  
+  // UPI/Bank duplicate check
+  linkedUPIs     String?  // JSON array of linked UPI IDs
+  
+  // Multi-account flags
+  suspectedMultiAccount Boolean @default(false)
+  linkedAccounts String?  // JSON array of suspected linked account IDs
+  
+  // ==================== REFERRAL SYSTEM ====================
   referralCode       String?  @unique
   referredBy         String?
   referralCount      Int      @default(0)
-  referralRewards    Int      @default(0) // Days earned from referrals
+  activeReferrals    Int      @default(0) // Referrals who completed first task - FOR LEADER UNLOCK
   
-  // Leader System
+  // Referral earnings (₹5 per active referral)
+  referralEarnings   Float    @default(0) // Total earned from referrals
+  pendingEarnings    Float    @default(0) // Earnings waiting 48hr unlock
+  withdrawnEarnings  Float    @default(0) // Total withdrawn
+  
+  // Minimum withdrawal: ₹200
+  canWithdraw        Boolean  @default(false)
+  
+  // ==================== LEADER SYSTEM ====================
   isLeader           Boolean  @default(false)
   leaderLevel        String   @default("NONE") // NONE, BRONZE, SILVER, GOLD, AMBASSADOR
   referredByLeaderId String?  // If this user was referred by a leader
+  
+  // Leader unlock progress (for UI)
+  tasksProgress      Int      @default(0) // Progress towards 10 tasks
+  ratingProgress     Float    @default(0) // Progress towards 4.5 rating
+  referralsProgress  Int      @default(0) // Progress towards 20 active referrals
   
   // KYC Status
   kycVerified        Boolean  @default(false)
   kycSubmittedAt     DateTime?
   
-  // Badges
-  badges        String?  // JSON array of badge IDs
+  // Badges & Status
+  badges             String?  // JSON array of badge IDs
+  statusBadge        String   @default("NEW") // NEW, ACTIVE, TRUSTED, EXPERT, LEADER
   
   // Preferences
   darkMode      Boolean  @default(false)
@@ -73,6 +143,7 @@ model User {
   notifications Boolean  @default(true)
   locationEnabled Boolean @default(true) // User can toggle
   showProfile   Boolean  @default(true)
+  crossAreaEnabled Boolean @default(false) // See 30km tasks
   
   // WhatsApp Notification Preferences
   whatsappEnabled    Boolean  @default(false)
@@ -86,6 +157,7 @@ model User {
   updatedAt     DateTime @updatedAt
   
   // Relations
+  area            Area?    @relation(fields: [areaCode], references: [areaCode])
   problems      Problem[]
   payments      Payment[]
   feedbacks     Feedback[]
@@ -102,6 +174,7 @@ model User {
   whatsappNotifications WhatsAppNotification[]
   leaderProfile Leader?
   referredByLeader Leader? @relation("LeaderReferrals", fields: [referredByLeaderId], references: [id])
+  starterTasks  StarterTaskCompletion[]
 
   @@index([phone])
   @@index([trustScore])
@@ -113,7 +186,11 @@ model User {
   @@index([whatsappNumber])
   @@index([isLeader])
   @@index([areaCode])
+  @@index([deviceFingerprint])
+  @@index([registeredIP])
 }
+
+// ==================== SESSION & SECURITY ====================
 
 // Session model for JWT management
 model Session {
@@ -157,13 +234,15 @@ model DeviceBinding {
   @@index([deviceFingerprint])
 }
 
+// ==================== TASK SYSTEM ====================
+
 // Problem/Help Request model
 model Problem {
   id              String   @id @default(cuid())
   postedById      String
   
   // Classification
-  type            String   // EMERGENCY, TIME_ACCESS, RESOURCE_RENT
+  type            String   // EMERGENCY, TIME_ACCESS, RESOURCE_RENT, PLATFORM_TASK
   category        String?  // puncture, charging, bike_rent, etc.
   riskLevel       String   @default("LOW") // LOW, MEDIUM, HIGH
   
@@ -177,6 +256,7 @@ model Problem {
   lat             Float
   lng             Float
   address         String?
+  areaCode        String?  // For area tracking
   
   // Trust requirement
   minTrustRequired Int    @default(40)
@@ -214,7 +294,77 @@ model Problem {
   @@index([createdAt])
   @@index([lat, lng])
   @@index([isAutoHidden])
+  @@index([areaCode])
 }
+
+// ==================== STARTER / PLATFORM TASKS ====================
+
+// Starter Tasks - For new users to earn while building supply
+model StarterTask {
+  id              String   @id @default(cuid())
+  
+  // Task Info
+  title           String
+  titleHi         String?
+  description     String
+  descriptionHi   String?
+  icon            String   // Emoji or icon name
+  
+  // Task Type
+  type            String   // SURVEY, FEEDBACK, PROMOTION, VERIFICATION
+  category        String   // LOCAL, PLATFORM, COMMUNITY
+  
+  // Reward
+  rewardAmount    Float    @default(5) // ₹5-20 per task
+  
+  // Requirements
+  areaRequired    Boolean  @default(false) // Needs area to be active
+  kycRequired     Boolean  @default(false)
+  
+  // Limits
+  maxCompletions  Int      @default(0) // 0 = unlimited
+  currentCompletions Int   @default(0)
+  perUserLimit    Int      @default(1) // How many times per user
+  
+  // Availability
+  isActive        Boolean  @default(true)
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  completions     StarterTaskCompletion[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+// Starter Task Completion - Track who completed what
+model StarterTaskCompletion {
+  id              String   @id @default(cuid())
+  taskId          String
+  userId          String
+  
+  // Status
+  status          String   @default("COMPLETED") // COMPLETED, REWARDED
+  
+  // Reward
+  rewardAmount    Float
+  rewardedAt      DateTime?
+  
+  // Metadata
+  completedAt     DateTime @default(now())
+  
+  // Relations
+  task            StarterTask @relation(fields: [taskId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@unique([taskId, userId])
+  @@index([userId])
+  @@index([taskId])
+}
+
+// ==================== PAYMENT SYSTEM ====================
 
 // Payment/Subscription model
 model Payment {
@@ -261,7 +411,47 @@ model Payment {
   @@index([createdAt])
   @@index([razorpayId])
   @@index([isFraudSuspected])
+  @@index([upiId])
 }
+
+// ==================== REFERRAL SYSTEM ====================
+
+// Referral model - Updated for ₹5 per active user
+model Referral {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referredUserId  String
+  code            String
+  
+  // Status
+  status          String   @default("PENDING") // PENDING, VERIFIED, FIRST_TASK, REWARDED
+  
+  // Task completion tracking
+  firstTaskCompleted Boolean @default(false)
+  firstTaskAt     DateTime?
+  
+  // Reward (₹5 per active user after first task)
+  rewardAmount    Float    @default(5)
+  rewardUnlockAt  DateTime? // 48 hours after first task
+  
+  // Withdrawal
+  isWithdrawable  Boolean  @default(false)
+  withdrawnAt     DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  referrer        User     @relation("Referrer", fields: [referrerId], references: [id])
+  referredUser    User     @relation("Referred", fields: [referredUserId], references: [id])
+
+  @@unique([referredUserId])
+  @@index([referrerId])
+  @@index([code])
+  @@index([status])
+  @@index([firstTaskCompleted])
+}
+
+// ==================== FEEDBACK & RATINGS ====================
 
 // Feedback/Rating model
 model Feedback {
@@ -322,6 +512,8 @@ model Report {
   @@index([reportedUserId])
 }
 
+// ==================== AUTH & VERIFICATION ====================
+
 // OTP Verification model (for login)
 model OtpVerification {
   id           String   @id @default(cuid())
@@ -336,33 +528,7 @@ model OtpVerification {
   @@index([expiresAt])
 }
 
-// Referral model
-model Referral {
-  id              String   @id @default(cuid())
-  referrerId      String
-  referredUserId  String
-  code            String
-  
-  // Status
-  status          String   @default("PENDING") // PENDING, VERIFIED, REWARDED
-  
-  // Verification
-  verifiedAt      DateTime?
-  rewardedAt      DateTime?
-  
-  // Reward
-  rewardDays      Int      @default(0)
-  
-  createdAt       DateTime @default(now())
-  
-  // Relations
-  referrer        User     @relation("Referrer", fields: [referrerId], references: [id])
-  referredUser    User     @relation("Referred", fields: [referredUserId], references: [id])
-
-  @@unique([referredUserId])
-  @@index([referrerId])
-  @@index([code])
-}
+// ==================== GAMIFICATION ====================
 
 // Badge/Achievement model
 model Badge {
@@ -370,7 +536,7 @@ model Badge {
   name            String
   description     String
   icon            String
-  category        String   // TRUST, HELP, REFERRAL, SPECIAL
+  category        String   // TRUST, HELP, REFERRAL, SPECIAL, LEADER
   requirement     String   // JSON with requirements
   reward          String?  // JSON with rewards
   createdAt       DateTime @default(now())
@@ -395,6 +561,97 @@ model UserAchievement {
   @@index([userId])
 }
 
+// ==================== LEADER SYSTEM ====================
+
+// Leader System - Area Leaders with commission (max 3 per area)
+model Leader {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  
+  // Area Info
+  areaCode        String
+  areaId          String?  // Reference to Area model
+  
+  // Leader Level
+  level           String   @default("BRONZE") // BRONZE, SILVER, GOLD, AMBASSADOR
+  
+  // Unlock Requirements (must meet ALL)
+  tasksCompleted  Int      @default(0) // Need 10
+  avgRating       Float    @default(0) // Need 4.5+
+  activeReferrals Int      @default(0) // Need 20
+  kycVerified     Boolean  @default(false)
+  
+  // Progress tracking
+  tasksProgress   Int      @default(0) // /10
+  ratingProgress  Float    @default(0) // /4.5
+  referralsProgress Int    @default(0) // /20
+  
+  // Connected Users (direct referrals)
+  connectedUsers  Int      @default(0)
+  
+  // Commission Stats (0.5% on helps in area)
+  totalCommission Float    @default(0)
+  monthlyCommission Float  @default(0)
+  pendingCommission Float  @default(0)
+  withdrawnCommission Float @default(0)
+  
+  // Status
+  isActive        Boolean  @default(true)
+  isVerified      Boolean  @default(false) // Unlocked status
+  unlockedAt      DateTime?
+  
+  // Slot management
+  slotNumber      Int?     // 1, 2, or 3
+  
+  // Milestones
+  bronzeUnlocked  Boolean  @default(false)
+  silverUnlocked  Boolean  @default(false)
+  goldUnlocked    Boolean  @default(false)
+  ambassadorUnlocked Boolean @default(false)
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaderReferrals User[]   @relation("LeaderReferrals")
+  commissions     LeaderCommission[]
+
+  @@index([areaCode])
+  @@index([level])
+  @@index([isActive])
+  @@index([isVerified])
+}
+
+// Leader Commission - Track all commission transactions (0.5%)
+model LeaderCommission {
+  id              String   @id @default(cuid())
+  leaderId        String
+  
+  // Commission Details
+  helpId          String?  // Reference to the completed help
+  amount          Float
+  commissionRate  Float    @default(0.005) // 0.5%
+  
+  // Status
+  status          String   @default("PENDING") // PENDING, CREDITED, WITHDRAWN
+  
+  // Metadata
+  description     String?
+  createdAt       DateTime @default(now())
+  creditedAt      DateTime?
+  
+  // Relations
+  leader          Leader   @relation(fields: [leaderId], references: [id], onDelete: Cascade)
+
+  @@index([leaderId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ==================== CHAT & NOTIFICATIONS ====================
+
 // Chat Message model
 model ChatMessage {
   id          String   @id @default(cuid())
@@ -414,7 +671,7 @@ model ChatMessage {
 model Notification {
   id          String   @id @default(cuid())
   userId      String
-  type        String   // REFERRAL, PAYMENT, HELP, SYSTEM, SECURITY
+  type        String   // REFERRAL, PAYMENT, HELP, SYSTEM, SECURITY, LEADER
   title       String
   message     String
   data        String?  // JSON
@@ -427,6 +684,8 @@ model Notification {
   @@index([isRead])
   @@index([createdAt])
 }
+
+// ==================== ADMIN & SECURITY ====================
 
 // Admin audit log
 model AdminLog {
@@ -450,7 +709,7 @@ model SecurityAudit {
   id              String   @id @default(cuid())
   userId          String?
   
-  eventType       String   // GPS_SPOOF, MULTI_ACCOUNT, FRAUD_ATTEMPT, SUSPICIOUS_LOGIN, etc.
+  eventType       String   // GPS_SPOOF, MULTI_ACCOUNT, FRAUD_ATTEMPT, SUSPICIOUS_LOGIN, DUPLICATE_UPI, etc.
   severity        String   // INFO, WARNING, HIGH, CRITICAL
   
   // Event details
@@ -559,6 +818,8 @@ model AdminAssignment {
   @@index([isActive])
 }
 
+// ==================== SYSTEM & STATS ====================
+
 // System Settings model
 model SystemSetting {
   id          String   @id @default(cuid())
@@ -574,6 +835,7 @@ model SystemSetting {
 model DailyStat {
   id              String   @id @default(cuid())
   date            String   @unique // YYYY-MM-DD
+  areaCode        String?  // Optional area-specific stats
   
   // User stats
   newUsers        Int      @default(0)
@@ -588,11 +850,14 @@ model DailyStat {
   // Problem stats
   problemsPosted  Int      @default(0)
   problemsClosed  Int      @default(0)
+  starterTasksCompleted Int @default(0)
   
   // Financial
   paymentsPending Int      @default(0)
   paymentsApproved Int     @default(0)
   revenue         Float    @default(0)
+  referralPayouts Float    @default(0)
+  leaderCommission Float   @default(0)
   
   // Security
   fraudAttempts   Int      @default(0)
@@ -602,6 +867,7 @@ model DailyStat {
   createdAt       DateTime @default(now())
 
   @@index([date])
+  @@index([areaCode])
 }
 
 // WhatsApp Notification model - For tracking notifications sent to paid users
@@ -664,78 +930,31 @@ model HelperRegistration {
   @@index([rank])
 }
 
-// Leader System - Area Leaders with commission
-model Leader {
+// ==================== WITHDRAWAL SYSTEM ====================
+
+// Withdrawal Request - For referral earnings (min ₹200)
+model WithdrawalRequest {
   id              String   @id @default(cuid())
-  userId          String   @unique
+  userId          String
   
-  // Area Info
-  areaCode        String   // 20km zone identifier
-  areaName        String   // e.g., "Dehradun Central"
+  // Amount
+  amount          Float    // Min ₹200
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED, PAID
   
-  // Leader Level
-  level           String   @default("BRONZE") // BRONZE, SILVER, GOLD, AMBASSADOR
+  // Payment details
+  upiId           String
+  transactionRef  String?
   
-  // Connected Users (direct referrals)
-  connectedUsers  Int      @default(0)
-  
-  // Commission Stats
-  totalCommission Float    @default(0)
-  monthlyCommission Float  @default(0)
-  pendingCommission Float  @default(0)
-  withdrawnCommission Float @default(0)
-  
-  // Unlock Requirements Met
-  helpsCompleted  Int      @default(0)
-  avgRating       Float    @default(0)
-  kycVerified     Boolean  @default(false)
-  
-  // Status
-  isActive        Boolean  @default(true)
-  unlockedAt      DateTime?
-  
-  // Milestones
-  bronzeUnlocked  Boolean  @default(false)
-  silverUnlocked  Boolean  @default(false)
-  goldUnlocked    Boolean  @default(false)
-  ambassadorUnlocked Boolean @default(false)
+  // Admin
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectionReason String?
   
   // Metadata
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  // Relations
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leaderReferrals User[]   @relation("LeaderReferrals")
-  commissions     LeaderCommission[]
-
-  @@index([areaCode])
-  @@index([level])
-  @@index([isActive])
-}
-
-// Leader Commission - Track all commission transactions
-model LeaderCommission {
-  id              String   @id @default(cuid())
-  leaderId        String
-  
-  // Commission Details
-  helpId          String?  // Reference to the completed help
-  amount          Float
-  commissionRate  Float    @default(0.005) // 0.5%
-  
-  // Status
-  status          String   @default("PENDING") // PENDING, CREDITED, WITHDRAWN
-  
-  // Metadata
-  description     String?
-  createdAt       DateTime @default(now())
-  creditedAt      DateTime?
-  
-  // Relations
-  leader          Leader   @relation(fields: [leaderId], references: [id], onDelete: Cascade)
-
-  @@index([leaderId])
+  @@index([userId])
   @@index([status])
   @@index([createdAt])
 }
