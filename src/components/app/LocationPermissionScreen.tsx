@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { MapPin, Loader2, CheckCircle, AlertCircle, Navigation, HandHeart } from 'lucide-react'
+import { MapPin, Loader2, CheckCircle, AlertCircle, Navigation, HandHeart, ArrowLeft } from 'lucide-react'
 import { useAppStore } from '@/store'
 
 interface LocationPermissionScreenProps {
@@ -14,7 +14,7 @@ interface LocationPermissionScreenProps {
 export function LocationPermissionScreen({ onGranted }: LocationPermissionScreenProps) {
   const [status, setStatus] = useState<'prompt' | 'requesting' | 'granted' | 'denied'>('prompt')
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null)
-  const { darkMode, setLocation } = useAppStore()
+  const { darkMode, setLocation, goBack } = useAppStore()
 
   const requestLocation = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -57,6 +57,14 @@ export function LocationPermissionScreen({ onGranted }: LocationPermissionScreen
       {/* Header */}
       <header className="pt-8 px-6">
         <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={goBack}
+            className={`rounded-xl ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-orange-100'}`}
+          >
+            <ArrowLeft className={`w-5 h-5 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
+          </Button>
           <motion.div 
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}

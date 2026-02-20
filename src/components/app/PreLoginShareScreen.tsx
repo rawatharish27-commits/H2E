@@ -16,7 +16,8 @@ import {
   Check,
   ArrowRight,
   HandHeart,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 
@@ -104,6 +105,14 @@ export function PreLoginShareScreen() {
       {/* Header */}
       <header className="pt-6 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setScreen('welcome')}
+            className={`rounded-xl ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-orange-100'}`}
+          >
+            <ArrowLeft className={`w-5 h-5 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
+          </Button>
           <motion.div 
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
