@@ -941,6 +941,16 @@ export function WelcomeScreen() {
             </>
           )}
         </Button>
+        
+        {/* Already Registered? Login Option */}
+        <div className="mt-3 text-center">
+          <button
+            onClick={() => setScreen('login')}
+            className={`text-sm font-medium ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
+          >
+            Already registered? Login / पहले से रजिस्टर्ड? लॉगिन करें
+          </button>
+        </div>
       </div>
     </div>
   )
