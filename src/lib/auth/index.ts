@@ -1,6 +1,7 @@
 // JWT and Authentication Utilities
 import { db, withRetry } from '@/lib/db'
 import { randomBytes, createHash } from 'crypto'
+import { NextRequest, NextResponse } from 'next/server'
 
 // JWT-like token generation (simplified for SQLite)
 export function generateToken(userId: string): string {
@@ -121,4 +122,29 @@ export function generateReferralCode(name?: string): string {
 // Generate temp referral code for pre-login
 export function generateTempReferralCode(): string {
   return `TEMP-${randomBytes(3).toString('hex').toUpperCase()}`
+}
+
+// Auth middleware for API routes
+export async function authMiddleware(request: NextRequest): Promise<{ userId: string } | NextResponse> {
+  // Get token from Authorization header or cookies
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '') || request.cookies.get('token')?.value
+  
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Unauthorized - No token provided' },
+      { status: 401 }
+    )
+  }
+  
+  const userId = await verifyToken(token)
+  
+  if (!userId) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Invalid or expired token' },
+      { status: 401 }
+    )
+  }
+  
+  return { userId }
 }
