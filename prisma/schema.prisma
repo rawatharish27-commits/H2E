@@ -1,25 +1,17 @@
-// HelpPe DailyEarn - Production-Grade Security Schema
+// Help2Earn - Production-Grade PostgreSQL Schema
 // Comprehensive A-to-Z Security Risk Map Implementation
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
-// For local development with SQLite
+// PostgreSQL Database
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
-
-// For production (Vercel/Neon/Supabase), use:
-// datasource db {
-//   provider  = "postgresql"
-//   url       = env("DATABASE_URL")
-//   // directUrl is required for Vercel/Neon/Supabase with connection pooling
-//   // It bypasses pgbouncer for transactions and avoids "prepared statement already exists" errors
-//   // If you don't have a direct URL, set DIRECT_DATABASE_URL to the same value as DATABASE_URL
-//   directUrl = env("DIRECT_DATABASE_URL")
-// }
 
 // User model - Both client and helper
 model User {
