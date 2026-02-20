@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { LogoIcon } from '@/components/ui/logo'
@@ -16,11 +16,17 @@ import {
   Users,
   MapPin,
   Clock,
-  Heart
+  Heart,
+  Zap,
+  Flame,
+  Target,
+  TrendingUp,
+  Navigation,
+  Sparkles
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 
-// 20 Emotional Problem Examples with Images
+// 20 Emotional Problem Examples with Images - User Friendly Prices
 const EMOTIONAL_PROBLEMS = [
   {
     id: 1,
@@ -29,7 +35,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'प्रेगनेंट महिला को अस्पताल',
     descriptionEn: 'Emergency! Need someone to take pregnant wife to hospital immediately.',
     descriptionHi: 'आपातकालीन! गर्भवती पत्नी को तुरंत अस्पताल ले जाना है।',
-    offerPrice: '₹200',
+    offerPrice: 'Starting at ₹150',
+    earnText: 'Earn ₹150-₹300',
     category: 'Emergency',
     gradient: 'from-red-500 to-pink-500'
   },
@@ -40,7 +47,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'लिफ्ट/सवारी चाहिए',
     descriptionEn: 'Stuck at bus stop, need lift to railway station urgently.',
     descriptionHi: 'बस स्टॉप पर फंसा हूं, जल्दी रेलवे स्टेशन लिफ्ट चाहिए।',
-    offerPrice: '₹50',
+    offerPrice: 'Starting at ₹30',
+    earnText: 'Earn ₹30-₹80',
     category: 'Transport',
     gradient: 'from-blue-500 to-cyan-500'
   },
@@ -51,7 +59,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'हादसा - अस्पताल मदद',
     descriptionEn: 'Minor accident! Need someone to take injured person to hospital.',
     descriptionHi: 'छोटा हादसा! घायल को अस्पताल ले जाने वाला चाहिए।',
-    offerPrice: '₹300',
+    offerPrice: 'Starting at ₹200',
+    earnText: 'Earn ₹200-₹400',
     category: 'Emergency',
     gradient: 'from-red-600 to-orange-500'
   },
@@ -62,7 +71,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'शादी की तैयारी मदद',
     descriptionEn: 'Daughter wedding next week. Need helping hands for preparations.',
     descriptionHi: 'बेटी की शादी अगले हफ्ते। तैयारी के लिए मददगार चाहिए।',
-    offerPrice: '₹500',
+    offerPrice: 'Starting at ₹300',
+    earnText: 'Earn ₹300-₹800',
     category: 'Event',
     gradient: 'from-pink-500 to-rose-500'
   },
@@ -73,7 +83,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'घर बनाने के मजदूर',
     descriptionEn: 'Need 5 laborers for house construction. Daily wage payment.',
     descriptionHi: 'घर बनाने के लिए 5 मजदूर चाहिए। दैनिक मजदूरी।',
-    offerPrice: '₹500/day',
+    offerPrice: 'Starting at ₹400/day',
+    earnText: 'Earn ₹400-₹600/day',
     category: 'Labor',
     gradient: 'from-amber-500 to-orange-500'
   },
@@ -84,7 +95,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'प्लंबर चाहिए',
     descriptionEn: 'Water pipe burst! Need plumber urgently to fix leakage.',
     descriptionHi: 'पानी की पाइप टूट गई! प्लंबर जल्दी चाहिए।',
-    offerPrice: '₹150',
+    offerPrice: 'Starting at ₹100',
+    earnText: 'Earn ₹100-₹250',
     category: 'Repair',
     gradient: 'from-blue-500 to-indigo-500'
   },
@@ -95,7 +107,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'वाशिंग मशीन रिपेयर',
     descriptionEn: 'Washing machine not working. Need technician to repair.',
     descriptionHi: 'वाशिंग मशीन काम नहीं कर रही। तकनीशियन चाहिए।',
-    offerPrice: '₹200',
+    offerPrice: 'Starting at ₹150',
+    earnText: 'Earn ₹150-₹350',
     category: 'Appliance',
     gradient: 'from-purple-500 to-violet-500'
   },
@@ -106,7 +119,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'TV रिपेयर चाहिए',
     descriptionEn: 'LED TV screen showing lines. Need TV repair person.',
     descriptionHi: 'LED TV स्क्रीन पर लाइनें आ रहीं। TV रिपेयर वाला चाहिए।',
-    offerPrice: '₹250',
+    offerPrice: 'Starting at ₹200',
+    earnText: 'Earn ₹200-₹400',
     category: 'Appliance',
     gradient: 'from-gray-500 to-slate-600'
   },
@@ -117,7 +131,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'इस्त्री रिपेयर',
     descriptionEn: 'Electric iron not heating. Need urgent repair before function.',
     descriptionHi: 'इलेक्ट्रिक इस्त्री गरम नहीं हो रही। फंक्शन से पहले रिपेयर चाहिए।',
-    offerPrice: '₹100',
+    offerPrice: 'Starting at ₹50',
+    earnText: 'Earn ₹50-₹150',
     category: 'Appliance',
     gradient: 'from-orange-400 to-red-400'
   },
@@ -128,7 +143,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'इलेक्ट्रीशियन चाहिए',
     descriptionEn: 'Power outage in house. Need electrician to check wiring.',
     descriptionHi: 'घर में बिजली गुल है। वायरिंग चेक करने इलेक्ट्रीशियन चाहिए।',
-    offerPrice: '₹150',
+    offerPrice: 'Starting at ₹100',
+    earnText: 'Earn ₹100-₹250',
     category: 'Repair',
     gradient: 'from-yellow-500 to-amber-500'
   },
@@ -139,7 +155,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'AC रिपेयर जल्दी',
     descriptionEn: 'AC not cooling in this summer heat! Need urgent repair.',
     descriptionHi: 'गर्मी में AC ठंडा नहीं कर रहा! जल्दी रिपेयर चाहिए।',
-    offerPrice: '₹300',
+    offerPrice: 'Starting at ₹250',
+    earnText: 'Earn ₹250-₹500',
     category: 'Appliance',
     gradient: 'from-cyan-500 to-blue-500'
   },
@@ -150,7 +167,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'फर्नीचर के लिए कारपेंटर',
     descriptionEn: 'Need carpenter to repair broken chairs and make new table.',
     descriptionHi: 'टूटी कुर्सियां ठीक करने और नई मेज बनाने कारपेंटर चाहिए।',
-    offerPrice: '₹400',
+    offerPrice: 'Starting at ₹300',
+    earnText: 'Earn ₹300-₹600',
     category: 'Repair',
     gradient: 'from-amber-600 to-yellow-600'
   },
@@ -161,7 +179,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'नौकरानी/घरेलू मदद',
     descriptionEn: 'Working couple needs maid for cooking and cleaning.',
     descriptionHi: 'वर्किंग कपल को खाना बनाने और सफाई के लिए नौकरानी चाहिए।',
-    offerPrice: '₹3000/mo',
+    offerPrice: 'Starting at ₹2500/mo',
+    earnText: 'Earn ₹2500-₹5000/mo',
     category: 'Household',
     gradient: 'from-green-500 to-teal-500'
   },
@@ -172,7 +191,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'बच्चे की देखभाल',
     descriptionEn: 'Need someone to pick kids from school and care for 2 hours.',
     descriptionHi: 'स्कूल से बच्चों को पिक करने और 2 घंटे देखभाल के लिए चाहिए।',
-    offerPrice: '₹100/day',
+    offerPrice: 'Starting at ₹80/day',
+    earnText: 'Earn ₹80-₹150/day',
     category: 'Care',
     gradient: 'from-pink-400 to-rose-400'
   },
@@ -183,7 +203,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'किराना पिकअप मदद',
     descriptionEn: 'Elderly person needs someone to get groceries from market.',
     descriptionHi: 'बुजुर्ग को बाजार से किराना लाने वाला चाहिए।',
-    offerPrice: '₹50',
+    offerPrice: 'Starting at ₹30',
+    earnText: 'Earn ₹30-₹80',
     category: 'Errand',
     gradient: 'from-green-400 to-emerald-500'
   },
@@ -194,7 +215,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'पानी कैन डिलीवरी',
     descriptionEn: 'Need 5 water cans delivered urgently. No water at home!',
     descriptionHi: '5 पानी कैन जल्दी चाहिए। घर में पानी नहीं है!',
-    offerPrice: '₹100',
+    offerPrice: 'Starting at ₹50',
+    earnText: 'Earn ₹50-₹100',
     category: 'Delivery',
     gradient: 'from-blue-400 to-cyan-400'
   },
@@ -205,7 +227,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'गैस सिलेंडर चाहिए',
     descriptionEn: 'Gas cylinder empty! Need spare cylinder or refill urgently.',
     descriptionHi: 'गैस सिलेंडर खाली! स्पेयर सिलेंडर या रिफिल जल्दी चाहिए।',
-    offerPrice: '₹150',
+    offerPrice: 'Starting at ₹100',
+    earnText: 'Earn ₹100-₹200',
     category: 'Delivery',
     gradient: 'from-orange-500 to-amber-500'
   },
@@ -216,7 +239,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'पालतू देखभाल',
     descriptionEn: 'Need someone to walk dog and feed while at office.',
     descriptionHi: 'ऑफिस के दौरान कुत्ते को घुमाने और खिलाने वाला चाहिए।',
-    offerPrice: '₹100/day',
+    offerPrice: 'Starting at ₹50/day',
+    earnText: 'Earn ₹50-₹150/day',
     category: 'Care',
     gradient: 'from-amber-400 to-orange-400'
   },
@@ -227,7 +251,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'बाइक पंक्चर मदद',
     descriptionEn: 'Stuck on highway with puncture! Need someone with puncture kit.',
     descriptionHi: 'हाईवे पर पंक्चर से फंसा! पंक्चर किट वाले की जरूरत।',
-    offerPrice: '₹100',
+    offerPrice: 'Starting at ₹50',
+    earnText: 'Earn ₹50-₹150',
     category: 'Emergency',
     gradient: 'from-red-400 to-orange-400'
   },
@@ -238,7 +263,8 @@ const EMOTIONAL_PROBLEMS = [
     titleHi: 'बुजुर्ग देखभाल मदद',
     descriptionEn: 'Need someone to stay with elderly parents while at work.',
     descriptionHi: 'काम के दौरान बुजुर्ग माता-पिता के साथ रहने वाला चाहिए।',
-    offerPrice: '₹300/day',
+    offerPrice: 'Starting at ₹200/day',
+    earnText: 'Earn ₹200-₹400/day',
     category: 'Care',
     gradient: 'from-purple-400 to-pink-400'
   }
@@ -328,6 +354,53 @@ export function WelcomeScreen() {
   const screen = EXPLAIN_SCREENS[currentScreen]
   const Icon = screen.icon
   
+  // Marketing Stats Animation
+  const [animatedUsers, setAnimatedUsers] = useState(0)
+  const [animatedEarnings, setAnimatedEarnings] = useState(0)
+  const [currentBanner, setCurrentBanner] = useState(0)
+  
+  // Urgency Banners (Blinkit style)
+  const URGENCY_BANNERS = [
+    { id: 1, text: '⚡ Only 5 Tasks Left in Your Area!', textHi: 'आपके क्षेत्र में सिर्फ 5 काम बचे!', color: 'from-red-500 to-orange-500' },
+    { id: 2, text: '🎁 First Task Bonus ₹50', textHi: 'पहले काम पर ₹50 बोनस!', color: 'from-green-500 to-emerald-500' },
+    { id: 3, text: '🔥 Peak Time – Earnings 1.5x', textHi: 'पीक टाइम - 1.5x कमाई!', color: 'from-orange-500 to-red-500' },
+    { id: 4, text: '👥 3 People Just Joined Nearby', textHi: '3 लोग अभी-अभी जुड़े!', color: 'from-blue-500 to-cyan-500' },
+  ]
+  
+  // Animate counters on mount
+  useEffect(() => {
+    const userInterval = setInterval(() => {
+      setAnimatedUsers(prev => {
+        if (prev >= 87) {
+          clearInterval(userInterval)
+          return 87
+        }
+        return prev + Math.floor(Math.random() * 5) + 1
+      })
+    }, 50)
+
+    const earningsInterval = setInterval(() => {
+      setAnimatedEarnings(prev => {
+        if (prev >= 18340) {
+          clearInterval(earningsInterval)
+          return 18340
+        }
+        return prev + Math.floor(Math.random() * 500) + 100
+      })
+    }, 30)
+
+    // Rotate banners every 3 seconds
+    const bannerInterval = setInterval(() => {
+      setCurrentBanner(prev => (prev + 1) % URGENCY_BANNERS.length)
+    }, 3000)
+
+    return () => {
+      clearInterval(userInterval)
+      clearInterval(earningsInterval)
+      clearInterval(bannerInterval)
+    }
+  }, [])
+  
   // Get location display name
   const locationDisplayName = locationAddress?.displayName || locationAddress?.city || locationAddress?.village || ''
   
@@ -402,6 +475,106 @@ export function WelcomeScreen() {
         </div>
       </header>
 
+      {/* Marketing Hooks Section - Before Problem Cards */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="px-4 py-3"
+      >
+        {/* Live Stats Section */}
+        <div className={`rounded-2xl overflow-hidden shadow-lg mb-3 ${darkMode ? 'bg-gradient-to-br from-orange-900/80 via-red-900/80 to-pink-900/80' : 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500'}`}>
+          <div className="p-3">
+            {/* Live Badge */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-white/90 text-xs font-medium">LIVE - 20KM Radius</span>
+              </div>
+              {locationDisplayName && (
+                <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                  <MapPin className="w-3 h-3 mr-1" />
+                  {locationDisplayName}
+                </Badge>
+              )}
+            </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <Users className="w-3.5 h-3.5 text-white/70" />
+                  <span className="text-xl font-bold text-white">{animatedUsers}</span>
+                </div>
+                <p className="text-white/70 text-[10px]">Users Online</p>
+              </div>
+              <div className="text-center border-x border-white/20">
+                <div className="flex items-center justify-center gap-1">
+                  <Wallet className="w-3.5 h-3.5 text-white/70" />
+                  <span className="text-xl font-bold text-white">₹{animatedEarnings.toLocaleString()}</span>
+                </div>
+                <p className="text-white/70 text-[10px]">Earned Today</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-white/70" />
+                  <span className="text-xl font-bold text-white">7</span>
+                </div>
+                <p className="text-white/70 text-[10px]">Active Tasks</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Urgency Banner (Blinkit Style) - Rotating */}
+        <div className={`rounded-xl overflow-hidden bg-gradient-to-r ${URGENCY_BANNERS[currentBanner].color} shadow-lg mb-3`}>
+          <div className="px-3 py-2">
+            <p className="text-white font-bold text-xs text-center">
+              {URGENCY_BANNERS[currentBanner].text}
+            </p>
+            <p className="text-white/80 text-[10px] text-center">
+              {URGENCY_BANNERS[currentBanner].textHi}
+            </p>
+          </div>
+        </div>
+
+        {/* Gamification Row */}
+        <div className={`rounded-xl p-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-orange-100'} border shadow-lg mb-3`}>
+          <div className="grid grid-cols-4 gap-2">
+            {/* Daily Streak */}
+            <div className={`text-center p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-orange-50'}`}>
+              <div className="flex items-center justify-center gap-1">
+                <Flame className="w-4 h-4 text-orange-500" />
+                <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>3</span>
+              </div>
+              <p className={`text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Streak</p>
+            </div>
+            {/* Area Rank */}
+            <div className={`text-center p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
+              <div className="flex items-center justify-center gap-1">
+                <Target className="w-4 h-4 text-blue-500" />
+                <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>#12</span>
+              </div>
+              <p className={`text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Rank</p>
+            </div>
+            {/* Total Earned */}
+            <div className={`text-center p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-green-50'}`}>
+              <div className="flex items-center justify-center gap-1">
+                <TrendingUp className="w-4 h-4 text-green-500" />
+                <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>₹850</span>
+              </div>
+              <p className={`text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Earned</p>
+            </div>
+            {/* Level */}
+            <div className={`text-center p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-yellow-50'}`}>
+              <div className="flex items-center justify-center gap-1">
+                <Sparkles className="w-4 h-4 text-yellow-500" />
+                <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>L2</span>
+              </div>
+              <p className={`text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Level</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Problem Cards - 5 at a time with full images */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -446,9 +619,9 @@ export function WelcomeScreen() {
                         alt={problem.titleEn}
                         className="w-full h-full object-cover"
                       />
-                      {/* Price Badge on Image */}
-                      <Badge className={`absolute top-1 right-1 bg-gradient-to-r ${problem.gradient} text-white text-[10px] shadow-lg px-1.5 py-0.5`}>
-                        {problem.offerPrice}
+                      {/* Earn Badge on Image - Shows Income Potential */}
+                      <Badge className={`absolute top-1 left-1 bg-green-500 text-white text-[9px] shadow-lg px-1.5 py-0.5 font-bold`}>
+                        {problem.earnText}
                       </Badge>
                     </div>
                     
@@ -468,9 +641,15 @@ export function WelcomeScreen() {
                       <p className={`text-xs line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {problem.descriptionEn}
                       </p>
-                      <p className={`text-[10px] mt-1 line-clamp-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                        {problem.descriptionHi}
-                      </p>
+                      {/* Price Section - Starting at for Clients */}
+                      <div className="flex items-center justify-between mt-1">
+                        <p className={`text-[10px] font-medium ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                          {problem.offerPrice}
+                        </p>
+                        <p className={`text-[10px] line-clamp-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {problem.descriptionHi}
+                        </p>
+                      </div>
                     </CardContent>
                   </div>
                 </Card>
