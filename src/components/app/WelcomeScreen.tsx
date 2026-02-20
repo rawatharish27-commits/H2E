@@ -341,9 +341,9 @@ const EXPLAIN_SCREENS = [
     urgencyBadgeHi: '⚡ 5 काम अभी वेटिंग में!',
     fomoText: 'Don\'t miss out - others are earning RIGHT NOW!',
     fomoTextHi: 'मत छोड़ो - दूसरे अभी कमा रहे हैं!',
-    gamification: { label: 'Your Potential Today', value: '₹500-₹1000', icon: 'wallet' },
-    psychologyText: 'Rahul from your area earned ₹800 today!',
-    psychologyTextHi: 'राहुल ने आपके एरिया से आज ₹800 कमाए!',
+    gamification: { label: 'Your Potential Today', value: '₹200-₹300', icon: 'wallet' },
+    psychologyText: 'Rahul from your area earned ₹250 today!',
+    psychologyTextHi: 'राहुल ने आपके एरिया से आज ₹250 कमाए!',
     countdownText: 'Peak hours ending soon!',
     countdownTextHi: 'पीक आवर्स जल्दी खत्म!',
   },
@@ -368,7 +368,7 @@ const EXPLAIN_SCREENS = [
     urgencyBadgeHi: '🎉 पहले 100 यूज़र्स को FREE प्रीमियम!',
     fomoText: '93 spots already taken! Only 7 left!',
     fomoTextHi: '93 स्पॉट पहले ही गए! सिर्फ 7 बचे!',
-    gamification: { label: 'Your Early Bird Bonus', value: '₹100', icon: 'gift' },
+    gamification: { label: 'Your Early Bird Bonus', value: '₹20', icon: 'gift' },
     psychologyText: 'This opportunity won\'t come again!',
     psychologyTextHi: 'ये मौका दोबारा नहीं आएगा!',
     countdownText: 'Offer ends in 10 minutes!',
@@ -389,6 +389,16 @@ export function WelcomeScreen() {
   const [animatedUsers, setAnimatedUsers] = useState(0)
   const [animatedEarnings, setAnimatedEarnings] = useState(0)
   const [currentBanner, setCurrentBanner] = useState(0)
+  
+  // Countdown Timer - 10 minutes
+  const [countdown, setCountdown] = useState(10 * 60) // 10 minutes in seconds
+  
+  // Format countdown as MM:SS
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
   
   // Urgency Banners (Blinkit style)
   const URGENCY_BANNERS = [
@@ -425,9 +435,19 @@ export function WelcomeScreen() {
       setCurrentBanner(prev => (prev + 1) % URGENCY_BANNERS.length)
     }, 3000)
 
+    // Countdown timer - decrease every second
+    const countdownInterval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 0) return 10 * 60 // Reset to 10 min if reaches 0
+        return prev - 1
+      })
+    }, 1000)
+
     return () => {
       clearInterval(userInterval)
       clearInterval(earningsInterval)
+      clearInterval(bannerInterval)
+      clearInterval(countdownInterval)
       clearInterval(bannerInterval)
     }
   }, [])
@@ -872,6 +892,17 @@ export function WelcomeScreen() {
                 <p className={`text-xs ${darkMode ? 'text-yellow-300' : 'text-yellow-500'}`}>
                   {screen.countdownTextHi}
                 </p>
+                {/* Live Countdown Timer */}
+                <motion.div 
+                  initial={{ scale: 1 }}
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ repeat: Infinity, duration: 1 }}
+                  className={`mt-1 px-3 py-1 rounded-full inline-block ${darkMode ? 'bg-red-900/50' : 'bg-red-100'}`}
+                >
+                  <span className={`text-lg font-mono font-bold ${countdown < 60 ? 'text-red-500 animate-pulse' : darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                    ⏱️ {formatCountdown(countdown)}
+                  </span>
+                </motion.div>
               </motion.div>
             )}
 
