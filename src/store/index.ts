@@ -25,6 +25,29 @@ export interface LocationAddress {
   displayName: string
 }
 
+// App visibility state for tracking when app is in foreground
+let isAppVisible = true
+let locationWatchId: number | null = null
+
+// Setup visibility change listener (only on client)
+if (typeof window !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    isAppVisible = !document.hidden
+    // Stop location tracking when app goes to background
+    if (document.hidden && locationWatchId !== null) {
+      navigator.geolocation.clearWatch(locationWatchId)
+      locationWatchId = null
+    }
+  })
+
+  // Also listen for page unload
+  window.addEventListener('beforeunload', () => {
+    if (locationWatchId !== null) {
+      navigator.geolocation.clearWatch(locationWatchId)
+    }
+  })
+}
+
 interface AppState {
   // Auth
   isAuthenticated: boolean
@@ -89,6 +112,8 @@ interface AppActions {
   setLocationAddress: (address: LocationAddress | null) => void
   requestLocation: () => Promise<Location | null>
   fetchLocationAddress: (lat: number, lng: number) => Promise<LocationAddress | null>
+  startLocationTracking: () => void
+  stopLocationTracking: () => void
   
   // Problems
   setNearbyProblems: (problems: Problem[]) => void
@@ -257,6 +282,49 @@ export const useAppStore = create<AppState & AppActions>()(
           console.error('Failed to fetch location address:', error)
         }
         return null
+      },
+
+      // Start continuous location tracking (only when app is visible)
+      startLocationTracking: () => {
+        if (typeof window === 'undefined' || !navigator.geolocation) return
+        
+        // Don't start if app is not visible
+        if (!isAppVisible) return
+
+        // Clear any existing watch
+        if (locationWatchId !== null) {
+          navigator.geolocation.clearWatch(locationWatchId)
+        }
+
+        locationWatchId = navigator.geolocation.watchPosition(
+          (position) => {
+            // Only update if app is visible
+            if (isAppVisible) {
+              const newLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              }
+              set({ location: newLocation, locationError: null })
+              get().fetchLocationAddress(newLocation.lat, newLocation.lng)
+            }
+          },
+          (error) => {
+            console.error('Location tracking error:', error)
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 30000,
+            maximumAge: 60000,
+          }
+        )
+      },
+
+      // Stop location tracking
+      stopLocationTracking: () => {
+        if (locationWatchId !== null) {
+          navigator.geolocation.clearWatch(locationWatchId)
+          locationWatchId = null
+        }
       },
 
       // Problems

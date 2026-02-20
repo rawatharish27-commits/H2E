@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -32,7 +32,12 @@ import {
   Users,
   Gift,
   HandHeart,
-  Navigation
+  Navigation,
+  Wallet,
+  Flame,
+  Trophy,
+  Target,
+  TrendingUp
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { getTrustBadge } from '@/types'
@@ -42,7 +47,7 @@ import { SOSFloatingButton } from './SOSButton'
 import { IncomeStoryModal } from './IncomeStoryModal'
 
 export function HomeScreen() {
-  const { user, setScreen, isSubscriptionActive, getTrustInfo, requestLocation, location, darkMode, toggleDarkMode } = useAppStore()
+  const { user, setScreen, isSubscriptionActive, getTrustInfo, requestLocation, location, darkMode, toggleDarkMode, locationAddress } = useAppStore()
   const [showMenu, setShowMenu] = useState(false)
   const [showResourceModal, setShowResourceModal] = useState(false)
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
@@ -60,6 +65,54 @@ export function HomeScreen() {
     gradient: string
     category: string
   } | null>(null)
+
+  // Marketing Dashboard State
+  const [animatedUsers, setAnimatedUsers] = useState(0)
+  const [animatedEarnings, setAnimatedEarnings] = useState(0)
+  const [currentBanner, setCurrentBanner] = useState(0)
+  const [dailyStreak, setDailyStreak] = useState(3) // Mock streak
+  
+  // Urgency Banners (Blinkit style)
+  const URGENCY_BANNERS = [
+    { id: 1, text: '⚡ Only 5 Tasks Left in Your Area!', textHi: 'आपके क्षेत्र में सिर्फ 5 काम बचे!', color: 'from-red-500 to-orange-500' },
+    { id: 2, text: '🎁 First Task Bonus ₹50', textHi: 'पहले काम पर ₹50 बोनस!', color: 'from-green-500 to-emerald-500' },
+    { id: 3, text: '🔥 Peak Time – Earnings 1.5x', textHi: 'पीक टाइम - 1.5x कमाई!', color: 'from-orange-500 to-red-500' },
+    { id: 4, text: '👥 3 People Just Joined Nearby', textHi: '3 लोग अभी-अभी जुड़े!', color: 'from-blue-500 to-cyan-500' },
+  ]
+
+  // Animate counters on mount
+  useEffect(() => {
+    const userInterval = setInterval(() => {
+      setAnimatedUsers(prev => {
+        if (prev >= 124) {
+          clearInterval(userInterval)
+          return 124
+        }
+        return prev + Math.floor(Math.random() * 8) + 1
+      })
+    }, 40)
+
+    const earningsInterval = setInterval(() => {
+      setAnimatedEarnings(prev => {
+        if (prev >= 18340) {
+          clearInterval(earningsInterval)
+          return 18340
+        }
+        return prev + Math.floor(Math.random() * 600) + 100
+      })
+    }, 30)
+
+    // Rotate banners every 3 seconds
+    const bannerInterval = setInterval(() => {
+      setCurrentBanner(prev => (prev + 1) % URGENCY_BANNERS.length)
+    }, 3000)
+
+    return () => {
+      clearInterval(userInterval)
+      clearInterval(earningsInterval)
+      clearInterval(bannerInterval)
+    }
+  }, [])
 
   useEffect(() => {
     requestLocation()
@@ -309,6 +362,161 @@ export function HomeScreen() {
 
       {/* Main Content - Added extra bottom padding for footer */}
       <main className="flex-1 pb-32">
+        {/* Marketing Dashboard - Live Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mt-4"
+        >
+          <div className={`rounded-2xl overflow-hidden shadow-lg ${darkMode ? 'bg-gradient-to-br from-orange-900/80 via-red-900/80 to-pink-900/80' : 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500'}`}>
+            <div className="p-4">
+              {/* Live Badge */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-white/90 text-xs font-medium">LIVE - 20KM Radius</span>
+                </div>
+                {locationAddress?.displayName && (
+                  <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                    <MapPin className="w-3 h-3 mr-1" />
+                    {locationAddress.displayName}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <Users className="w-4 h-4 text-white/70" />
+                    <span className="text-2xl font-bold text-white">{animatedUsers}</span>
+                  </div>
+                  <p className="text-white/70 text-xs">Users Online</p>
+                </div>
+                <div className="text-center border-x border-white/20">
+                  <div className="flex items-center justify-center gap-1">
+                    <Wallet className="w-4 h-4 text-white/70" />
+                    <span className="text-2xl font-bold text-white">₹{animatedEarnings.toLocaleString()}</span>
+                  </div>
+                  <p className="text-white/70 text-xs">Earned Today</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <Zap className="w-4 h-4 text-white/70" />
+                    <span className="text-2xl font-bold text-white">7</span>
+                  </div>
+                  <p className="text-white/70 text-xs">Active Tasks</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Urgency Banner (Blinkit Style) - Rotating */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mx-4 mt-3"
+        >
+          <div className={`rounded-xl overflow-hidden bg-gradient-to-r ${URGENCY_BANNERS[currentBanner].color} shadow-lg`}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentBanner}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="px-4 py-3"
+              >
+                <p className="text-white font-bold text-sm text-center">
+                  {URGENCY_BANNERS[currentBanner].text}
+                </p>
+                <p className="text-white/80 text-xs text-center">
+                  {URGENCY_BANNERS[currentBanner].textHi}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          {/* Banner Dots */}
+          <div className="flex justify-center gap-1 mt-2">
+            {URGENCY_BANNERS.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all ${
+                  idx === currentBanner 
+                    ? 'w-4 bg-orange-500' 
+                    : 'w-1.5 bg-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Gamification Section - Streak & Level */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mx-4 mt-4"
+        >
+          <div className={`rounded-2xl p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-orange-100'} border shadow-lg`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-500" />
+                <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Your Progress</span>
+              </div>
+              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs">
+                Level 2
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {/* Daily Streak */}
+              <div className={`text-center p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-orange-50'}`}>
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Flame className="w-5 h-5 text-orange-500" />
+                  <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{dailyStreak}</span>
+                </div>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Day Streak</p>
+              </div>
+
+              {/* Area Rank */}
+              <div className={`text-center p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Target className="w-5 h-5 text-blue-500" />
+                  <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>#12</span>
+                </div>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Area Rank</p>
+              </div>
+
+              {/* Total Earned */}
+              <div className={`text-center p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-green-50'}`}>
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                  <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>₹850</span>
+                </div>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Total Earned</p>
+              </div>
+            </div>
+
+            {/* Streak Progress Bar */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Next Level Progress</span>
+                <span className={`text-xs font-medium ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>650/1000 XP</span>
+              </div>
+              <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} overflow-hidden`}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: '65%' }}
+                  transition={{ delay: 0.5, duration: 1 }}
+                  className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full"
+                />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* User Profile Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
