@@ -275,7 +275,7 @@ const PROBLEM_GROUPS = Array.from({ length: 4 }, (_, i) =>
   EMOTIONAL_PROBLEMS.slice(i * 5, (i + 1) * 5)
 )
 
-// Pre-Login Explain Screens - Before any login
+// Pre-Login Explain Screens - Before any login (Psychological Flow)
 const EXPLAIN_SCREENS = [
   {
     id: 1,
@@ -284,15 +284,16 @@ const EXPLAIN_SCREENS = [
     titleEn: 'Problem: Nearby help needed',
     titleHi: 'समस्या: पास में मदद चाहिए',
     subtitleEn: 'Puncture? Charging? Queue? Errand?',
-    subtitleHi: 'पंक्चर? चार्जिंग? लाइन? कोई काम?',
+    subtitleHi: 'पंकचर? चार्जिंग? लाइन? कोई काम?',
     descriptionEn: 'When you need help urgently, who do you call? Neighbors or professionals?',
     descriptionHi: 'जब जल्दी मदद चाहिए, किसे बुलाते हो? पड़ोसी या प्रोफेशनल?',
     points: [
-      { en: 'Puncture on the road', hi: 'सड़क पर पंक्चर' },
+      { en: 'Puncture on the road', hi: 'सड़क पर पंकचर' },
       { en: 'Phone battery died', hi: 'फोन की बैटरी खत्म' },
       { en: 'Need to stand in queue', hi: 'लाइन में खड़ा होना है' },
       { en: 'Someone to pick/drop', hi: 'कोई पिक/ड्रॉप करे' },
-    ]
+    ],
+    // No urgency on first screen - keep it relatable
   },
   {
     id: 2,
@@ -305,11 +306,19 @@ const EXPLAIN_SCREENS = [
     descriptionEn: 'If you can help someone nearby, you can earn ₹100-₹500 per help!',
     descriptionHi: 'अगर पास के किसी की मदद कर सकते हो, तो ₹100-₹500 कमा सकते हो!',
     points: [
-      { en: 'Fix a puncture - ₹50-100', hi: 'पंक्चर ठीक करो - ₹50-100' },
+      { en: 'Fix a puncture - ₹50-100', hi: 'पंकचर ठीक करो - ₹50-100' },
       { en: 'Stand in queue - ₹100-200', hi: 'लाइन में खड़े रहो - ₹100-200' },
       { en: 'Lend your bike - ₹200-500', hi: 'बाइक दे दो - ₹200-500' },
       { en: 'Local guidance - ₹50-100', hi: 'रास्ता बताओ - ₹50-100' },
-    ]
+    ],
+    // CURIOSITY & FOMO Elements
+    urgencyBadge: '🔥 Limited Spots in Your Area!',
+    urgencyBadgeHi: '🔥 आपके एरिया में लिमिटेड स्पॉट!',
+    fomoText: '₹18,340 earned TODAY by people like you!',
+    fomoTextHi: 'आप जैसे लोगों ने आज ₹18,340 कमाए!',
+    gamification: { label: 'Active Earners Nearby', value: '87+', icon: 'users' },
+    psychologyText: 'Your neighbor just earned ₹500 helping someone!',
+    psychologyTextHi: 'आपके पड़ोसी ने अभी ₹500 कमाए मदद करके!',
   },
   {
     id: 3,
@@ -326,7 +335,17 @@ const EXPLAIN_SCREENS = [
       { en: 'Decide price yourself', hi: 'कीमत खुद तय करो' },
       { en: 'No platform commission', hi: 'प्लेटफॉर्म का कोई कमीशन नहीं' },
       { en: 'Cash or UPI - your choice', hi: 'कैश या UPI - आपकी मर्ज़ी' },
-    ]
+    ],
+    // URGENCY & GAMIFICATION
+    urgencyBadge: '⚡ 5 Tasks Waiting NOW!',
+    urgencyBadgeHi: '⚡ 5 काम अभी वेटिंग में!',
+    fomoText: 'Don\'t miss out - others are earning RIGHT NOW!',
+    fomoTextHi: 'मत छोड़ो - दूसरे अभी कमा रहे हैं!',
+    gamification: { label: 'Your Potential Today', value: '₹500-₹1000', icon: 'wallet' },
+    psychologyText: 'Rahul from your area earned ₹800 today!',
+    psychologyTextHi: 'राहुल ने आपके एरिया से आज ₹800 कमाए!',
+    countdownText: 'Peak hours ending soon!',
+    countdownTextHi: 'पीक आवर्स जल्दी खत्म!',
   },
   {
     id: 4,
@@ -343,7 +362,19 @@ const EXPLAIN_SCREENS = [
       { en: 'Build local network', hi: 'लोकल नेटवर्क बनाओ' },
       { en: 'Get help in minutes', hi: 'मिनटों में मदद पाओ' },
       { en: 'Earn referral bonus', hi: 'रेफरल बोनस कमाओ' },
-    ]
+    ],
+    // FINAL PUSH - MAXIMUM FOMO
+    urgencyBadge: '🎉 First 100 users get FREE premium!',
+    urgencyBadgeHi: '🎉 पहले 100 यूज़र्स को FREE प्रीमियम!',
+    fomoText: '93 spots already taken! Only 7 left!',
+    fomoTextHi: '93 स्पॉट पहले ही गए! सिर्फ 7 बचे!',
+    gamification: { label: 'Your Early Bird Bonus', value: '₹100', icon: 'gift' },
+    psychologyText: 'This opportunity won\'t come again!',
+    psychologyTextHi: 'ये मौका दोबारा नहीं आएगा!',
+    countdownText: 'Offer ends in 10 minutes!',
+    countdownTextHi: 'ऑफर 10 मिनट में खत्म!',
+    socialProof: '12 people joined in last 5 minutes!',
+    socialProofHi: 'पिछले 5 मिनट में 12 लोग जुड़े!',
   }
 ]
 
@@ -718,7 +749,7 @@ export function WelcomeScreen() {
         </div>
       </motion.div>
       
-      {/* Explain Screens - Compact */}
+      {/* Explain Screens - Compact with Psychology */}
       <AnimatePresence mode="wait">
         <motion.div
           key={screen.id}
@@ -728,6 +759,22 @@ export function WelcomeScreen() {
           className="px-4 py-2"
         >
           <div className={`p-4 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+            {/* Urgency Badge - Screen 2,3,4 */}
+            {screen.urgencyBadge && (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className={`mb-3 p-2 rounded-xl text-center ${darkMode ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'}`}
+              >
+                <p className={`text-sm font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  {screen.urgencyBadge}
+                </p>
+                <p className={`text-xs ${darkMode ? 'text-red-300' : 'text-red-500'}`}>
+                  {screen.urgencyBadgeHi}
+                </p>
+              </motion.div>
+            )}
+            
             <div className="flex items-center gap-3 mb-2">
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${screen.iconBg} flex items-center justify-center`}>
                 <Icon className="w-5 h-5 text-white" />
@@ -756,6 +803,94 @@ export function WelcomeScreen() {
                 </div>
               ))}
             </div>
+
+            {/* FOMO Section - Screen 2,3,4 */}
+            {screen.fomoText && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className={`mt-3 p-2 rounded-xl ${darkMode ? 'bg-orange-900/30 border border-orange-800' : 'bg-orange-50 border border-orange-200'}`}
+              >
+                <p className={`text-sm font-bold text-center ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                  💰 {screen.fomoText}
+                </p>
+                <p className={`text-xs text-center ${darkMode ? 'text-orange-300' : 'text-orange-500'}`}>
+                  {screen.fomoTextHi}
+                </p>
+              </motion.div>
+            )}
+
+            {/* Gamification Card - Screen 2,3,4 */}
+            {screen.gamification && (
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className={`mt-3 p-3 rounded-xl flex items-center justify-between ${darkMode ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-800' : 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200'}`}
+              >
+                <div className="flex items-center gap-2">
+                  {screen.gamification.icon === 'users' && <Users className="w-5 h-5 text-green-500" />}
+                  {screen.gamification.icon === 'wallet' && <Wallet className="w-5 h-5 text-green-500" />}
+                  {screen.gamification.icon === 'gift' && <span className="text-lg">🎁</span>}
+                  <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{screen.gamification.label}</span>
+                </div>
+                <span className={`text-xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>{screen.gamification.value}</span>
+              </motion.div>
+            )}
+
+            {/* Psychology Text - Screen 2,3,4 */}
+            {screen.psychologyText && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className={`mt-2 p-2 rounded-lg flex items-center gap-2 ${darkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}
+              >
+                <span className="text-sm">💡</span>
+                <div>
+                  <p className={`text-xs font-medium ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>{screen.psychologyText}</p>
+                  <p className={`text-[10px] ${darkMode ? 'text-blue-400' : 'text-blue-500'}`}>{screen.psychologyTextHi}</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Countdown - Screen 3,4 */}
+            {screen.countdownText && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className={`mt-2 p-2 rounded-lg text-center ${darkMode ? 'bg-yellow-900/30 border border-yellow-800' : 'bg-yellow-50 border border-yellow-200'}`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Clock className="w-4 h-4 text-yellow-500 animate-pulse" />
+                  <p className={`text-sm font-bold ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                    {screen.countdownText}
+                  </p>
+                </div>
+                <p className={`text-xs ${darkMode ? 'text-yellow-300' : 'text-yellow-500'}`}>
+                  {screen.countdownTextHi}
+                </p>
+              </motion.div>
+            )}
+
+            {/* Social Proof - Screen 4 only */}
+            {screen.socialProof && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.7 }}
+                className={`mt-2 p-2 rounded-lg text-center ${darkMode ? 'bg-purple-900/30 border border-purple-800' : 'bg-purple-50 border border-purple-200'}`}
+              >
+                <p className={`text-sm font-bold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+                  👥 {screen.socialProof}
+                </p>
+                <p className={`text-xs ${darkMode ? 'text-purple-300' : 'text-purple-500'}`}>
+                  {screen.socialProofHi}
+                </p>
+              </motion.div>
+            )}
           </div>
         </motion.div>
       </AnimatePresence>
