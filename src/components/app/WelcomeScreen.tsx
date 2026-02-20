@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
   ChevronRight, 
+  ChevronLeft,
   AlertTriangle,
   Phone,
   Wallet,
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 
-// 20 Emotional Problem Examples with Images - Grid View
+// 20 Emotional Problem Examples with Images
 const EMOTIONAL_PROBLEMS = [
   {
     id: 1,
@@ -243,6 +244,11 @@ const EMOTIONAL_PROBLEMS = [
   }
 ]
 
+// Split problems into groups of 5
+const PROBLEM_GROUPS = Array.from({ length: 4 }, (_, i) => 
+  EMOTIONAL_PROBLEMS.slice(i * 5, (i + 1) * 5)
+)
+
 // Pre-Login Explain Screens - Before any login
 const EXPLAIN_SCREENS = [
   {
@@ -317,12 +323,29 @@ const EXPLAIN_SCREENS = [
 
 export function WelcomeScreen() {
   const [currentScreen, setCurrentScreen] = useState(0)
+  const [problemPage, setProblemPage] = useState(0) // 0, 1, 2, 3 for 4 pages of 5 images
   const { setScreen, setTempReferralCode, darkMode, locationAddress } = useAppStore()
   const screen = EXPLAIN_SCREENS[currentScreen]
   const Icon = screen.icon
   
   // Get location display name
   const locationDisplayName = locationAddress?.displayName || locationAddress?.city || locationAddress?.village || ''
+  
+  // Get current 5 problems
+  const currentProblems = PROBLEM_GROUPS[problemPage]
+  const totalProblemPages = PROBLEM_GROUPS.length
+  
+  const handleNextProblems = () => {
+    if (problemPage < totalProblemPages - 1) {
+      setProblemPage(problemPage + 1)
+    }
+  }
+  
+  const handlePrevProblems = () => {
+    if (problemPage > 0) {
+      setProblemPage(problemPage - 1)
+    }
+  }
   
   const handleNext = () => {
     if (currentScreen < EXPLAIN_SCREENS.length - 1) {
@@ -379,7 +402,7 @@ export function WelcomeScreen() {
         </div>
       </header>
 
-      {/* 20 Emotional Problems Grid - Images on TOP */}
+      {/* Problem Cards - 5 at a time with full images */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -393,54 +416,106 @@ export function WelcomeScreen() {
             </p>
           </div>
           <Badge className="bg-red-100 text-red-700 text-xs">
-            20 Requests
+            {problemPage + 1}/{totalProblemPages}
           </Badge>
         </div>
         
-        {/* Grid View - 2 columns, 10 rows = 20 cards */}
-        <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto pb-2">
-          {EMOTIONAL_PROBLEMS.map((problem, index) => (
-            <motion.div
-              key={problem.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.03 }}
-            >
-              <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-md overflow-hidden`}>
-                {/* Image on TOP */}
-                <div className="relative">
-                  <img 
-                    src={problem.image} 
-                    alt={problem.titleEn}
-                    className="w-full h-24 object-cover"
-                  />
-                  {/* Price Badge */}
-                  <Badge className={`absolute top-2 right-2 bg-gradient-to-r ${problem.gradient} text-white text-xs shadow-lg`}>
-                    {problem.offerPrice}
-                  </Badge>
-                  {/* Category */}
-                  <Badge variant="outline" className="absolute bottom-2 left-2 bg-white/90 text-gray-700 text-xs">
-                    {problem.category}
-                  </Badge>
-                </div>
-                
-                <CardContent className="p-2">
-                  {/* Title */}
-                  <p className={`font-bold text-xs truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {problem.titleEn}
-                  </p>
-                  <p className={`text-xs mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {problem.titleHi}
-                  </p>
-                  
-                  {/* Description */}
-                  <p className={`text-xs line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {problem.descriptionEn}
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+        {/* 5 Cards Grid - Full Image Cards */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={problemPage}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 gap-3"
+          >
+            {currentProblems.map((problem, index) => (
+              <motion.div
+                key={problem.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-md overflow-hidden`}>
+                  <div className="flex">
+                    {/* Full Image on Left */}
+                    <div className="relative w-28 h-28 flex-shrink-0">
+                      <img 
+                        src={problem.image} 
+                        alt={problem.titleEn}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Price Badge on Image */}
+                      <Badge className={`absolute top-1 right-1 bg-gradient-to-r ${problem.gradient} text-white text-[10px] shadow-lg px-1.5 py-0.5`}>
+                        {problem.offerPrice}
+                      </Badge>
+                    </div>
+                    
+                    {/* Content on Right */}
+                    <CardContent className="p-2 flex-1 flex flex-col justify-center">
+                      <div className="flex items-start justify-between mb-1">
+                        <p className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {problem.titleEn}
+                        </p>
+                        <Badge variant="outline" className="text-[10px] ml-1 flex-shrink-0">
+                          {problem.category}
+                        </Badge>
+                      </div>
+                      <p className={`text-xs mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {problem.titleHi}
+                      </p>
+                      <p className={`text-xs line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {problem.descriptionEn}
+                      </p>
+                      <p className={`text-[10px] mt-1 line-clamp-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                        {problem.descriptionHi}
+                      </p>
+                    </CardContent>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+        
+        {/* Navigation Buttons for Problems */}
+        <div className="flex items-center justify-between mt-3 px-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handlePrevProblems}
+            disabled={problemPage === 0}
+            className={`h-8 px-3 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600'} disabled:opacity-30`}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          
+          {/* Page dots */}
+          <div className="flex items-center gap-1">
+            {PROBLEM_GROUPS.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all ${
+                  idx === problemPage 
+                    ? 'w-4 bg-orange-500' 
+                    : 'w-1.5 bg-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNextProblems}
+            disabled={problemPage === totalProblemPages - 1}
+            className={`h-8 px-3 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600'} disabled:opacity-30`}
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
         </div>
       </motion.div>
 
