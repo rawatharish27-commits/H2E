@@ -35,15 +35,22 @@ export default function Home() {
     setDarkMode,
     goBack,
     loginPhone,
-    requestLocation,
-    location,
-    locationError
+    requestLocation
   } = useAppStore()
   
-  const [mounted, setMounted] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
+  const [isHydrated, setIsHydrated] = useState(false)
   
   const hasNavigated = useRef(false)
+
+  // Wait for Zustand to hydrate from localStorage
+  useEffect(() => {
+    // Small delay to ensure hydration completes
+    const timer = setTimeout(() => {
+      setIsHydrated(true)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Initialize app
   useEffect(() => {
@@ -69,9 +76,10 @@ export default function Home() {
     init()
   }, [setDarkMode, requestLocation])
 
-  // Handle navigation after loading
+  // Handle navigation after loading AND hydration
   useEffect(() => {
-    if (isLoading || !mounted || hasNavigated.current) return
+    // Wait for both loading to complete AND hydration to finish
+    if (isLoading || !isHydrated || hasNavigated.current) return
     
     hasNavigated.current = true
     
@@ -113,7 +121,7 @@ export default function Home() {
     } catch {
       setScreen('welcome')
     }
-  }, [isLoading, mounted, isAuthenticated, user, loginPhone, setScreen, setDarkMode])
+  }, [isLoading, isHydrated, isAuthenticated, user, loginPhone, setScreen, setDarkMode])
 
   // Render screen
   const renderScreen = () => {
