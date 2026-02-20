@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAppStore } from '@/store'
 import { LoginScreen } from '@/components/app/LoginScreen'
-import { OtpScreen } from '@/components/app/OtpScreen'
 import { HomeScreen } from '@/components/app/HomeScreen'
 import { SubscriptionScreen } from '@/components/app/SubscriptionScreen'
 import { PostProblemScreen } from '@/components/app/PostProblemScreen'
@@ -35,7 +34,6 @@ export default function Home() {
     darkMode,
     setDarkMode,
     goBack,
-    loginPhone,
     requestLocation
   } = useAppStore()
   
@@ -104,7 +102,7 @@ export default function Home() {
           setScreen('subscription')
         }
       } else {
-        // New user flow: Splash → Welcome → Referral → Login → OTP → Subscription → Home
+        // New user flow: Splash → Welcome → Referral → Login → Subscription → Home
         const hasSeenWelcome = localStorage.getItem('hasSeenWelcome')
         
         // Always show welcome screen for new users (hasSeenWelcome not set)
@@ -112,18 +110,14 @@ export default function Home() {
           // First time - show welcome screen
           setScreen('welcome')
         } else {
-          // Returning user - go to login
-          if (loginPhone) {
-            setScreen('otp')
-          } else {
-            setScreen('login')
-          }
+          // Returning user - go to login directly
+          setScreen('login')
         }
       }
     } catch {
       setScreen('welcome')
     }
-  }, [isLoading, isHydrated, isAuthenticated, user, loginPhone, setScreen, setDarkMode])
+  }, [isLoading, isHydrated, isAuthenticated, user, setScreen, setDarkMode])
 
   // Render screen
   const renderScreen = () => {
@@ -136,9 +130,6 @@ export default function Home() {
         return <PreLoginShareScreen />
       case 'login':
         return <LoginScreen />
-      case 'otp':
-        const phone = loginPhone || (typeof window !== 'undefined' ? sessionStorage.getItem('loginPhone') : null)
-        return phone ? <OtpScreen phone={phone} /> : <LoginScreen />
       case 'username':
         return <UsernameScreen onComplete={() => setScreen('home')} />
       case 'dashboard':

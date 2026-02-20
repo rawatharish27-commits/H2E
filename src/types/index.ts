@@ -233,7 +233,6 @@ export type AppScreen =
   | 'welcome'
   | 'pre-login-share'
   | 'login'
-  | 'otp'
   | 'dashboard'
   | 'home'
   | 'subscription'

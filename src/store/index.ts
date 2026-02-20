@@ -98,6 +98,7 @@ interface AppActions {
   // Auth
   setUser: (user: User | null) => void
   setToken: (token: string | null) => void
+  login: (user: User, token?: string) => void
   setLoginPhone: (phone: string | null) => void
   setLoginName: (name: string | null) => void
   logout: () => void
@@ -192,6 +193,13 @@ export const useAppStore = create<AppState & AppActions>()(
       // Auth
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       setToken: (token) => set({ token }),
+      login: (user, token) => set({ 
+        user, 
+        token: token || null,
+        isAuthenticated: true,
+        loginPhone: null,
+        loginName: null
+      }),
       setLoginPhone: (phone) => set({ loginPhone: phone }),
       setLoginName: (name) => set({ loginName: name }),
       logout: () => set({ 
