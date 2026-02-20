@@ -507,20 +507,31 @@ export function WelcomeScreen() {
             </div>
           </div>
           
-          {/* Progress dots */}
-          <div className="flex items-center gap-1.5">
-            {EXPLAIN_SCREENS.map((_, index) => (
-              <motion.div
-                key={index}
-                className={`h-1.5 rounded-full transition-all ${
-                  index === currentScreen 
-                    ? 'w-6 bg-gradient-to-r from-orange-500 to-red-500' 
-                    : index < currentScreen 
-                      ? 'w-1.5 bg-orange-400' 
-                      : darkMode ? 'w-1.5 bg-gray-600' : 'w-1.5 bg-gray-300'
-                }`}
-              />
-            ))}
+          {/* Right Side - Login Option & Progress dots */}
+          <div className="flex items-center gap-3">
+            {/* Already Registered? Login Option - Top Right */}
+            <button
+              onClick={() => setScreen('login')}
+              className={`text-xs font-medium px-3 py-1.5 rounded-full border ${darkMode ? 'text-blue-400 border-blue-500 hover:bg-blue-900/30' : 'text-blue-600 border-blue-300 hover:bg-blue-50'}`}
+            >
+              Login / लॉगिन
+            </button>
+            
+            {/* Progress dots */}
+            <div className="flex items-center gap-1.5">
+              {EXPLAIN_SCREENS.map((_, index) => (
+                <motion.div
+                  key={index}
+                  className={`h-1.5 rounded-full transition-all ${
+                    index === currentScreen 
+                      ? 'w-6 bg-gradient-to-r from-orange-500 to-red-500' 
+                      : index < currentScreen 
+                        ? 'w-1.5 bg-orange-400' 
+                        : darkMode ? 'w-1.5 bg-gray-600' : 'w-1.5 bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </header>
@@ -941,16 +952,6 @@ export function WelcomeScreen() {
             </>
           )}
         </Button>
-        
-        {/* Already Registered? Login Option */}
-        <div className="mt-3 text-center">
-          <button
-            onClick={() => setScreen('login')}
-            className={`text-sm font-medium ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
-          >
-            Already registered? Login / पहले से रजिस्टर्ड? लॉगिन करें
-          </button>
-        </div>
       </div>
     </div>
   )
