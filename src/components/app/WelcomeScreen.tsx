@@ -4,13 +4,89 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { LogoIcon } from '@/components/ui/logo'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { 
   ChevronRight, 
   AlertTriangle,
   Phone,
-  Wallet
+  Wallet,
+  Share2,
+  Users,
+  MapPin,
+  Clock,
+  Star
 } from 'lucide-react'
 import { useAppStore } from '@/store'
+
+// 5 Real Problem Examples - To Encourage Sharing
+const PROBLEM_EXAMPLES = [
+  {
+    id: 1,
+    emoji: '🏍️',
+    titleEn: 'Bike Puncture on Highway',
+    titleHi: 'हाईवे पर बाइक पंक्चर',
+    descriptionEn: 'Need someone with puncture kit urgently! Stuck 5km from city.',
+    descriptionHi: 'पंक्चर किट वाले की जल्दी जरूरत है! शहर से 5km फंसा हूं।',
+    location: 'NH-48 Highway, 2km from toll',
+    timeAgo: '5 min ago',
+    offerPrice: '₹100',
+    category: 'Emergency',
+    gradient: 'from-red-500 to-orange-500'
+  },
+  {
+    id: 2,
+    emoji: '🔋',
+    titleEn: 'Phone Battery Died at Market',
+    titleHi: 'बाजार में फोन की बैटरी खत्म',
+    descriptionEn: 'Need charger or power bank urgently for important call!',
+    descriptionHi: 'जरूरी कॉल के लिए चार्जर या पावर बैंक चाहिए!',
+    location: 'Main Market, Sector 15',
+    timeAgo: '10 min ago',
+    offerPrice: '₹50',
+    category: 'Urgent',
+    gradient: 'from-yellow-500 to-amber-500'
+  },
+  {
+    id: 3,
+    emoji: '🏥',
+    titleEn: 'Medicine Delivery Needed',
+    titleHi: 'दवा डिलीवरी चाहिए',
+    descriptionEn: 'Elderly patient needs medicines from medical store. Cannot go myself.',
+    descriptionHi: 'बुजुर्ग मरीज को मेडिकल स्टोर से दवाइयां चाहिए। खुद नहीं जा सकता।',
+    location: 'Vikas Nagar, Block B',
+    timeAgo: '15 min ago',
+    offerPrice: '₹150',
+    category: 'Medical',
+    gradient: 'from-green-500 to-teal-500'
+  },
+  {
+    id: 4,
+    emoji: '🏦',
+    titleEn: 'Someone to Stand in Bank Queue',
+    titleHi: 'बैंक लाइन में खड़े होने वाला चाहिए',
+    descriptionEn: 'Long queue at SBI bank. Need someone to hold my spot for 2 hours.',
+    descriptionHi: 'SBI बैंक में लंबी लाइन। 2 घंटे के लिए जगह पकड़ने वाला चाहिए।',
+    location: 'SBI Bank, Main Branch',
+    timeAgo: '20 min ago',
+    offerPrice: '₹200',
+    category: 'Time',
+    gradient: 'from-blue-500 to-indigo-500'
+  },
+  {
+    id: 5,
+    emoji: '👴',
+    titleEn: 'Elderly Care for 3 Hours',
+    titleHi: '3 घंटे के लिए बुजुर्ग देखभाल',
+    descriptionEn: 'Need someone to stay with my father while I attend emergency work.',
+    descriptionHi: 'मेरे पिताजी के साथ रहने वाला चाहिए जब तक मैं जरूरी काम करूं।',
+    location: 'Rajendra Nagar, House 45',
+    timeAgo: '25 min ago',
+    offerPrice: '₹300',
+    category: 'Care',
+    gradient: 'from-purple-500 to-pink-500'
+  }
+]
 
 // Pre-Login Explain Screens - Before any login
 const EXPLAIN_SCREENS = [
@@ -63,6 +139,23 @@ const EXPLAIN_SCREENS = [
       { en: 'Decide price yourself', hi: 'कीमत खुद तय करो' },
       { en: 'No platform commission', hi: 'प्लेटफॉर्म का कोई कमीशन नहीं' },
       { en: 'Cash or UPI - your choice', hi: 'कैश या UPI - आपकी मर्ज़ी' },
+    ]
+  },
+  {
+    id: 4,
+    icon: Share2,
+    iconBg: 'from-pink-500 to-rose-500',
+    titleEn: 'Share & Build Network',
+    titleHi: 'शेयर करो और नेटवर्क बनाओ',
+    subtitleEn: 'More shares = More helpers nearby',
+    subtitleHi: 'ज्यादा शेयर = ज्यादा मददगार पास',
+    descriptionEn: 'Share app with friends. Build your helper network. Get help faster!',
+    descriptionHi: 'दोस्तों को ऐप शेयर करो। मददगारों का नेटवर्क बनाओ। जल्दी मदद पाओ!',
+    points: [
+      { en: 'Share with 5 friends', hi: '5 दोस्तों को शेयर करो' },
+      { en: 'Build local network', hi: 'लोकल नेटवर्क बनाओ' },
+      { en: 'Get help in minutes', hi: 'मिनटों में मदद पाओ' },
+      { en: 'Earn referral bonus', hi: 'रेफरल बोनस कमाओ' },
     ]
   }
 ]
@@ -230,6 +323,109 @@ export function WelcomeScreen() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Live Problem Examples - Scrollable Cards */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="px-4 py-4"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <p className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              Live Help Requests
+            </p>
+          </div>
+          <Badge className="bg-red-100 text-red-700 text-xs animate-pulse">
+            🔴 Real-time
+          </Badge>
+        </div>
+        
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+          {PROBLEM_EXAMPLES.map((problem, index) => (
+            <motion.div
+              key={problem.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.9 + index * 0.1 }}
+              className="flex-shrink-0 w-64"
+            >
+              <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-xl overflow-hidden`}>
+                {/* Gradient top bar */}
+                <div className={`h-1.5 bg-gradient-to-r ${problem.gradient}`} />
+                
+                <CardContent className="p-3">
+                  {/* Header */}
+                  <div className="flex items-start gap-2 mb-2">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${problem.gradient} flex items-center justify-center text-2xl shadow-lg`}>
+                      {problem.emoji}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-bold text-sm truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {problem.titleEn}
+                      </p>
+                      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {problem.titleHi}
+                      </p>
+                    </div>
+                    <Badge className={`bg-gradient-to-r ${problem.gradient} text-white text-xs`}>
+                      {problem.offerPrice}
+                    </Badge>
+                  </div>
+                  
+                  {/* Description */}
+                  <p className={`text-xs mb-2 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    {problem.descriptionEn}
+                  </p>
+                  
+                  {/* Footer */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <MapPin className={`w-3 h-3 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                      <span className={`text-xs truncate max-w-24 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {problem.location.split(',')[0]}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className={`w-3 h-3 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                      <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {problem.timeAgo}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Category Badge */}
+                  <div className="mt-2">
+                    <Badge variant="outline" className={`text-xs ${darkMode ? 'border-gray-600 text-gray-300' : 'border-gray-200 text-gray-600'}`}>
+                      {problem.category}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+        
+        {/* Share CTA */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className={`mt-3 p-3 rounded-xl text-center ${darkMode ? 'bg-gradient-to-r from-orange-900/30 to-red-900/30' : 'bg-gradient-to-r from-orange-50 to-red-50'} border ${darkMode ? 'border-orange-800' : 'border-orange-200'}`}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <Users className="w-4 h-4 text-orange-500" />
+            <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              Share with friends to build your network!
+            </p>
+          </div>
+          <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            अपना नेटवर्क बनाने के लिए दोस्तों को शेयर करें!
+          </p>
+        </motion.div>
+      </motion.div>
       
       {/* Buttons */}
       <div className="px-6 pb-8 space-y-3">
