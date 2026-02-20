@@ -19,11 +19,11 @@ import {
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 
-// 5 Real Problem Examples - To Encourage Sharing
+// 5 Real Problem Examples - To Encourage Sharing (with images)
 const PROBLEM_EXAMPLES = [
   {
     id: 1,
-    emoji: '🏍️',
+    image: '/images/problems/bike-puncture.png',
     titleEn: 'Bike Puncture on Highway',
     titleHi: 'हाईवे पर बाइक पंक्चर',
     descriptionEn: 'Need someone with puncture kit urgently! Stuck 5km from city.',
@@ -36,7 +36,7 @@ const PROBLEM_EXAMPLES = [
   },
   {
     id: 2,
-    emoji: '🔋',
+    image: '/images/problems/phone-battery.png',
     titleEn: 'Phone Battery Died at Market',
     titleHi: 'बाजार में फोन की बैटरी खत्म',
     descriptionEn: 'Need charger or power bank urgently for important call!',
@@ -49,7 +49,7 @@ const PROBLEM_EXAMPLES = [
   },
   {
     id: 3,
-    emoji: '🏥',
+    image: '/images/problems/medicine-delivery.png',
     titleEn: 'Medicine Delivery Needed',
     titleHi: 'दवा डिलीवरी चाहिए',
     descriptionEn: 'Elderly patient needs medicines from medical store. Cannot go myself.',
@@ -62,7 +62,7 @@ const PROBLEM_EXAMPLES = [
   },
   {
     id: 4,
-    emoji: '🏦',
+    image: '/images/problems/bank-queue.png',
     titleEn: 'Someone to Stand in Bank Queue',
     titleHi: 'बैंक लाइन में खड़े होने वाला चाहिए',
     descriptionEn: 'Long queue at SBI bank. Need someone to hold my spot for 2 hours.',
@@ -75,7 +75,7 @@ const PROBLEM_EXAMPLES = [
   },
   {
     id: 5,
-    emoji: '👴',
+    image: '/images/problems/elderly-care.png',
     titleEn: 'Elderly Care for 3 Hours',
     titleHi: '3 घंटे के लिए बुजुर्ग देखभाल',
     descriptionEn: 'Need someone to stay with my father while I attend emergency work.',
@@ -357,11 +357,17 @@ export function WelcomeScreen() {
                 <div className={`h-1.5 bg-gradient-to-r ${problem.gradient}`} />
                 
                 <CardContent className="p-3">
+                  {/* Problem Image */}
+                  <div className="w-full h-28 rounded-xl overflow-hidden mb-2">
+                    <img 
+                      src={problem.image} 
+                      alt={problem.titleEn}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
                   {/* Header */}
                   <div className="flex items-start gap-2 mb-2">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${problem.gradient} flex items-center justify-center text-2xl shadow-lg`}>
-                      {problem.emoji}
-                    </div>
                     <div className="flex-1 min-w-0">
                       <p className={`font-bold text-sm truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                         {problem.titleEn}
