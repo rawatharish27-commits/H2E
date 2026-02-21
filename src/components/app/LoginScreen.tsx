@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowLeft, Loader2, Shield, AlertCircle, CheckCircle, HandHeart, User, MapPin, Navigation, Building, Home, Map, Eye, EyeOff, Lock, ArrowRight } from 'lucide-react'
+import { ArrowLeft, Loader2, Shield, AlertCircle, CheckCircle, HandHeart, User, MapPin, Navigation, Building, Home, Map, Eye, EyeOff, Lock, ArrowRight, KeyRound } from 'lucide-react'
 import { useAppStore } from '@/store'
 
 export function LoginScreen() {
@@ -23,6 +23,14 @@ export function LoginScreen() {
   const [isDetectingLocation, setIsDetectingLocation] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  
+  // Forgot Password State
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [resetOtp, setResetOtp] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [resetStep, setResetStep] = useState(1) // 1: enter phone, 2: enter OTP, 3: new password
+  const [devOtp, setDevOtp] = useState('')
   
   const { setScreen, darkMode, requestLocation, locationAddress, location, login, setUser } = useAppStore()
 
@@ -198,6 +206,118 @@ export function LoginScreen() {
       }
     } catch {
       setError('Network error. Please check your connection. / नेटवर्क त्रुटि।')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Forgot Password Handlers
+  const handleSendResetOtp = async () => {
+    setError('')
+    
+    if (!phone || !/^[6-9]\d{9}$/.test(phone)) {
+      setError('Please enter a valid 10-digit mobile number')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        setSuccess('OTP sent to your mobile number!')
+        if (data.devOtp) {
+          setDevOtp(data.devOtp)
+        }
+        setResetStep(2)
+      } else {
+        setError(data.error || 'Failed to send OTP')
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleVerifyOtp = async () => {
+    setError('')
+    
+    if (!resetOtp || resetOtp.length !== 4) {
+      setError('Please enter a valid 4-digit OTP')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp: resetOtp })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        setSuccess('OTP verified! Please set your new password.')
+        setResetStep(3)
+      } else {
+        setError(data.error || 'Invalid OTP')
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    setError('')
+    
+    if (!newPassword || newPassword.length < 4) {
+      setError('Password must be at least 4 characters')
+      return
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, newPassword })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        setSuccess('Password reset successfully! Please login.')
+        setTimeout(() => {
+          setShowForgotPassword(false)
+          setResetStep(1)
+          setResetOtp('')
+          setNewPassword('')
+          setConfirmNewPassword('')
+          setPassword('')
+        }, 2000)
+      } else {
+        setError(data.error || 'Failed to reset password')
+      }
+    } catch {
+      setError('Network error. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -541,10 +661,165 @@ export function LoginScreen() {
                     {isNewUser ? 'Already have an account? Login / पहले से खाता है? लॉगिन करें' : "Don't have an account? Register / खाता नहीं है? पंजीकरण करें"}
                   </button>
                 </div>
+
+                {/* Forgot Password Link - Only for login */}
+                {!isNewUser && (
+                  <div className="text-center pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForgotPassword(true)
+                        setError('')
+                        setSuccess('')
+                        setResetStep(1)
+                      }}
+                      className={`text-xs flex items-center justify-center gap-1 mx-auto ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                    >
+                      <KeyRound className="w-3 h-3" />
+                      Forgot Password? / पासवर्ड भूल गए?
+                    </button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Forgot Password Modal */}
+        <AnimatePresence>
+          {showForgotPassword && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowForgotPassword(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className={`w-full max-w-sm ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl overflow-hidden`}
+              >
+                <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Reset Password
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setShowForgotPassword(false)
+                        setResetStep(1)
+                        setError('')
+                        setSuccess('')
+                      }}
+                      className={`p-1 rounded-lg ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Step 1: Enter Phone */}
+                  {resetStep === 1 && (
+                    <div className="space-y-3">
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Enter your registered mobile number to receive OTP
+                      </p>
+                      <Input
+                        type="tel"
+                        placeholder="Enter mobile number"
+                        value={phone}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
+                        className={`h-11 ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                        maxLength={10}
+                      />
+                      <Button
+                        onClick={handleSendResetOtp}
+                        disabled={isLoading || phone.length !== 10}
+                        className="w-full bg-blue-500 hover:bg-blue-600"
+                      >
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send OTP'}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Step 2: Enter OTP */}
+                  {resetStep === 2 && (
+                    <div className="space-y-3">
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Enter the 4-digit OTP sent to +91 {phone}
+                      </p>
+                      {devOtp && (
+                        <p className="text-xs text-orange-500 text-center">Dev OTP: {devOtp}</p>
+                      )}
+                      <Input
+                        type="text"
+                        placeholder="Enter OTP"
+                        value={resetOtp}
+                        onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        className={`h-11 text-center text-xl tracking-widest ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                        maxLength={4}
+                      />
+                      <Button
+                        onClick={handleVerifyOtp}
+                        disabled={isLoading || resetOtp.length !== 4}
+                        className="w-full bg-blue-500 hover:bg-blue-600"
+                      >
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify OTP'}
+                      </Button>
+                      <button
+                        onClick={() => setResetStep(1)}
+                        className={`w-full text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                      >
+                        Change number?
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Step 3: New Password */}
+                  {resetStep === 3 && (
+                    <div className="space-y-3">
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Set your new password
+                      </p>
+                      <Input
+                        type="password"
+                        placeholder="New password (min 4 chars)"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className={`h-11 ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                      />
+                      <Input
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        className={`h-11 ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                      />
+                      <Button
+                        onClick={handleResetPassword}
+                        disabled={isLoading || !newPassword || newPassword !== confirmNewPassword}
+                        className="w-full bg-green-500 hover:bg-green-600"
+                      >
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reset Password'}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Error/Success */}
+                  {error && (
+                    <p className="text-red-500 text-xs mt-2">{error}</p>
+                  )}
+                  {success && (
+                    <p className="text-green-500 text-xs mt-2">{success}</p>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Trust Badge */}
         <motion.div

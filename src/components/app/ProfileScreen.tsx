@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -30,7 +30,8 @@ import {
   Globe,
   Lock,
   Camera,
-  Loader2
+  Loader2,
+  KeyRound
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { getTrustBadge, formatDate } from '@/types'
@@ -41,6 +42,15 @@ export function ProfileScreen() {
   const [name, setName] = useState(user?.name || '')
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // Change Password State
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   const trustInfo = getTrustInfo()
   const isActive = isSubscriptionActive()
@@ -109,6 +119,65 @@ export function ProfileScreen() {
 
   const triggerPhotoUpload = () => {
     fileInputRef.current?.click()
+  }
+
+  // Change Password Handler
+  const handleChangePassword = async () => {
+    setPasswordError('')
+    setPasswordSuccess('')
+    
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setPasswordError('All fields are required')
+      return
+    }
+    
+    if (newPassword.length < 4) {
+      setPasswordError('New password must be at least 4 characters')
+      return
+    }
+    
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('New passwords do not match')
+      return
+    }
+    
+    if (!user?.id) {
+      setPasswordError('User not found')
+      return
+    }
+    
+    setIsChangingPassword(true)
+    
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          currentPassword,
+          newPassword
+        })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        setPasswordSuccess('Password changed successfully!')
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmNewPassword('')
+        setTimeout(() => {
+          setShowChangePassword(false)
+          setPasswordSuccess('')
+        }, 2000)
+      } else {
+        setPasswordError(data.error || 'Failed to change password')
+      }
+    } catch {
+      setPasswordError('Network error. Please try again.')
+    } finally {
+      setIsChangingPassword(false)
+    }
   }
 
   const getTrustLevel = () => {
@@ -342,6 +411,19 @@ export function ProfileScreen() {
               
               <button 
                 className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                onClick={() => setShowChangePassword(true)}
+              >
+                <div className="flex items-center gap-3">
+                  <KeyRound className="w-5 h-5 text-muted-foreground" />
+                  <span className="font-medium">Change Password</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              </button>
+              
+              <Separator />
+              
+              <button 
+                className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
                 onClick={() => setScreen('privacy-settings')}
               >
                 <div className="flex items-center gap-3">
@@ -474,6 +556,107 @@ export function ProfileScreen() {
           Help2Earn v1.0.0 • Production Build
         </p>
       </main>
+
+      {/* Change Password Modal */}
+      <AnimatePresence>
+        {showChangePassword && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowChangePassword(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-card rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="h-1 bg-gradient-to-r from-orange-500 to-red-500" />
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-lg">Change Password</h3>
+                  <button
+                    onClick={() => {
+                      setShowChangePassword(false)
+                      setPasswordError('')
+                      setPasswordSuccess('')
+                      setCurrentPassword('')
+                      setNewPassword('')
+                      setConfirmNewPassword('')
+                    }}
+                    className="p-1 rounded-lg hover:bg-muted text-muted-foreground"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">Current Password</label>
+                    <Input
+                      type="password"
+                      placeholder="Enter current password"
+                      value={currentPassword}
+                      onChange={(e) => {
+                        setCurrentPassword(e.target.value)
+                        setPasswordError('')
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">New Password</label>
+                    <Input
+                      type="password"
+                      placeholder="Enter new password (min 4 chars)"
+                      value={newPassword}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value)
+                        setPasswordError('')
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">Confirm New Password</label>
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmNewPassword}
+                      onChange={(e) => {
+                        setConfirmNewPassword(e.target.value)
+                        setPasswordError('')
+                      }}
+                    />
+                  </div>
+
+                  {passwordError && (
+                    <p className="text-red-500 text-xs">{passwordError}</p>
+                  )}
+                  {passwordSuccess && (
+                    <p className="text-green-500 text-xs">{passwordSuccess}</p>
+                  )}
+
+                  <Button
+                    onClick={handleChangePassword}
+                    disabled={isChangingPassword || !currentPassword || !newPassword || !confirmNewPassword}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                  >
+                    {isChangingPassword ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Change Password'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
