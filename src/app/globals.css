@@ -123,11 +123,15 @@
   }
 }
 
+/* ==================== MOBILE SCROLL FIXES ==================== */
+
 /* Mobile-first styles */
 html {
   font-size: 16px;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
+  /* Enable smooth scrolling */
+  scroll-behavior: smooth;
 }
 
 /* Smooth dark mode transitions */
@@ -144,18 +148,45 @@ body,
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Prevent overscroll on mobile */
-body {
-  overscroll-behavior: none;
+/* ==================== CRITICAL MOBILE SCROLL FIX ==================== */
+
+/* Allow body to scroll naturally */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  html {
+    height: -webkit-fill-available;
+  }
+  
+  body {
+    min-height: -webkit-fill-available;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
 }
 
 /* Allow scrolling within content areas */
 .overflow-y-auto,
 .overflow-auto,
 [class*="overflow-y"] {
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 /* Custom scrollbar */
@@ -185,13 +216,14 @@ body {
   background: oklch(0.5 0 0);
 }
 
-/* Hide scrollbar on mobile */
+/* Hide scrollbar on mobile but keep functionality */
 @media (max-width: 640px) {
   ::-webkit-scrollbar {
     display: none;
   }
   * {
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
   }
 }
 
@@ -207,8 +239,6 @@ button,
 [role="button"],
 a {
   touch-action: manipulation;
-  min-height: 44px;
-  min-width: 44px;
 }
 
 /* Prevent text selection on interactive elements */
@@ -414,4 +444,32 @@ button,
     0 0 0 4px rgba(100, 100, 100, 0.3),
     inset 0 -5px 20px rgba(0, 0, 0, 0.3),
     inset 0 5px 10px rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== MOBILE PERFORMANCE ==================== */
+
+/* Reduce animations on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* GPU acceleration for smooth scrolling */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Fix for position fixed elements on mobile */
+@media (max-width: 640px) {
+  .sticky {
+    position: -webkit-sticky;
+    position: sticky;
+  }
 }

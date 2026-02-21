@@ -66,8 +66,8 @@ export default function Home() {
       // Request location immediately on app start
       requestLocation()
       
-      // Splash delay - 10 seconds
-      await new Promise(resolve => setTimeout(resolve, 10000))
+      // Splash delay - 2.5 seconds (reduced for mobile)
+      await new Promise(resolve => setTimeout(resolve, 2500))
       
       setIsLoading(false)
     }
