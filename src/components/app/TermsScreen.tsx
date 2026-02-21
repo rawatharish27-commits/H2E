@@ -33,7 +33,7 @@ export function TermsScreen({ onBack, onAccept, showAccept = false }: TermsScree
         <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-xl p-4 border border-orange-500/20">
           <h2 className="font-bold text-lg mb-2 flex items-center gap-2">
             <Scale className="w-5 h-5 text-orange-500" />
-            Help2Earn - Terms of Service
+            Community Help Network - Terms of Service
           </h2>
           <p className="text-sm text-muted-foreground">
             Last updated: January 2025

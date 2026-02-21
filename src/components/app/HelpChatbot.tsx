@@ -44,7 +44,7 @@ export function HelpChatbot() {
       const welcomeMessage: Message = {
         id: 'welcome',
         role: 'assistant',
-        content: ` Namaste! Main HelpBot hoon, aapka Help2Earn assistant. 🙏
+        content: `Namaste! Main HelpBot hoon, aapka Community Help Network assistant. 🙏
 
 Main aapki madad kar sakta hoon:
 • App kaise kaam karti hai samjhne mein
@@ -189,7 +189,7 @@ Aapka sawaal pucho! 😊`,
                   </div>
                   <div>
                     <h3 className="font-bold">HelpBot</h3>
-                    <p className="text-xs text-white/80">Aapka Help2Earn Assistant</p>
+                    <p className="text-xs text-white/80">Aapka Community Help Network Assistant</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -76,7 +76,7 @@ export function UsernameScreen({ onComplete }: UsernameScreenProps) {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
             <span className="text-xl">🤝</span>
           </div>
-          <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Help2Earn</span>
+          <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Community Help Network</span>
         </div>
       </header>
 
@@ -95,7 +95,7 @@ export function UsernameScreen({ onComplete }: UsernameScreenProps) {
           >
             <img 
               src="/logo-handshake.png" 
-              alt="Help2Earn Logo" 
+              alt="Community Help Network Logo" 
               className="w-full h-full object-cover"
             />
           </motion.div>

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en,hi`,
       {
         headers: {
-          'User-Agent': 'Help2Earn-App/1.0'
+          'User-Agent': 'Community-Help-Network-App/1.0'
         }
       }
     )

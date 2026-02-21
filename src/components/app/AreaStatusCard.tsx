@@ -236,7 +236,7 @@ export function AreaStatusCard({ areaCode, onAreaActive }: AreaStatusProps) {
                       className="flex-1"
                       onClick={() => {
                         // Share functionality
-                        const shareText = `Help2Earn app join karo! Hamare area me ${requirements.MIN_USERS - current.registeredUsers} aur users chahiye activation ke liye.`
+                        const shareText = `Community Help Network app join karo! Hamare area me ${requirements.MIN_USERS - current.registeredUsers} aur users chahiye activation ke liye.`
                         if (navigator.share) {
                           navigator.share({ text: shareText })
                         } else {

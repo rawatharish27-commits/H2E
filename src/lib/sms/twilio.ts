@@ -1,4 +1,4 @@
-// Twilio SMS Service for Help2Earn
+// Twilio SMS Service for Community Help Network
 import twilio from 'twilio'
 
 // Twilio configuration
@@ -100,7 +100,7 @@ export async function sendSms(
  * Send OTP via SMS
  */
 export async function sendOtpSms(phone: string, otp: string): Promise<SendSmsResult> {
-  const message = `Your Help2Earn verification code is ${otp}. Valid for 5 minutes. Do not share with anyone. - H2E`
+  const message = `Your Community Help Network verification code is ${otp}. Valid for 5 minutes. Do not share with anyone. - CHN`
   return sendSms(phone, message)
 }
 

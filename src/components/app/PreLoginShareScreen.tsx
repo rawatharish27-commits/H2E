@@ -29,14 +29,14 @@ export function PreLoginShareScreen() {
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
   
-  const shareMessage = `🤝 Help2Earn - Madad karke kamaayein!
+  const shareMessage = `🤝 Community Help Network - Madad karke kamaayein!
 मदद करके कमाई करो!
 
 📍 20 KM में मददगार खोजो
 💰 ₹100-₹500 per help कमाओ
 📞 डायरेक्ट फोन पे बात करो
 
-🔗 Download: https://help2earn.app
+🔗 Download: https://communityhelpnetwork.app
 📝 My Referral Code: ${tempReferralCode}
 
 मदद करो, कमाई करो! 💰`
@@ -125,7 +125,7 @@ export function PreLoginShareScreen() {
             <HandHeart className="w-6 h-6 text-white" />
           </motion.div>
           <div>
-            <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Help2Earn</span>
+            <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Community Help Network</span>
             <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Share & Earn / शेयर करो और कमाओ</p>
           </div>
         </div>

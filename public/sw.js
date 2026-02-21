@@ -1,6 +1,6 @@
-// Help2Earn - Service Worker for PWA
-const CACHE_NAME = 'help2earn-v1.0.0';
-const RUNTIME_CACHE = 'help2earn-runtime-v1';
+// Community Help Network - Service Worker for PWA
+const CACHE_NAME = 'community-help-network-v1.0.0';
+const RUNTIME_CACHE = 'community-help-network-runtime-v1';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
@@ -110,7 +110,7 @@ self.addEventListener('push', (event) => {
 
   const data = event.data.json();
   const options = {
-    body: data.body || 'New notification from HelpPe',
+    body: data.body || 'New notification from Community Help Network',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png',
     vibrate: [100, 50, 100],
@@ -124,7 +124,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'HelpPe', options)
+    self.registration.showNotification(data.title || 'Community Help Network', options)
   );
 });
 

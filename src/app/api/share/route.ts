@@ -18,7 +18,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 // Configuration
-const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://help2earn.app'
+const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://communityhelpnetwork.app'
 
 /**
  * Generate WhatsApp-safe message for a problem
@@ -60,7 +60,7 @@ ${priceText}
 ${link}
 
 _
-Help2Earn - Madad karein, kamaayein!`
+Community Help Network - Madad karein, kamaayein!`
 
   return {
     title: `${urgencyEmoji} ${problem.title}`,

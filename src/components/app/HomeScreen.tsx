@@ -45,6 +45,8 @@ import { allResourceCategories, type Resource, type ResourceCategory } from '@/d
 import { TrustBadge } from './TrustBadge'
 import { SOSFloatingButton } from './SOSButton'
 import { IncomeStoryModal } from './IncomeStoryModal'
+import { HelpChatbot } from './HelpChatbot'
+import { FreeAccessBanner } from './FreeAccessBanner'
 
 export function HomeScreen() {
   const { user, setScreen, isSubscriptionActive, getTrustInfo, requestLocation, location, darkMode, toggleDarkMode, locationAddress } = useAppStore()
@@ -228,12 +230,12 @@ export function HomeScreen() {
           <div className="flex items-center gap-3">
             <motion.div 
               whileHover={{ scale: 1.05, rotate: 5 }}
-              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 shadow-xl flex items-center justify-center"
+              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-xl flex items-center justify-center"
             >
               <HandHeart className="w-6 h-6 text-white" />
             </motion.div>
             <div>
-              <h1 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Help2Earn</h1>
+              <h1 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Community Help Network</h1>
               <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Connecting People / लोगों को जोड़ना</p>
             </div>
           </div>
@@ -267,7 +269,7 @@ export function HomeScreen() {
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className={`rounded-xl ${darkMode ? 'text-yellow-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-orange-100'}`}
+              className={`rounded-xl ${darkMode ? 'text-yellow-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-purple-100'}`}
             >
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
@@ -277,7 +279,7 @@ export function HomeScreen() {
               variant="ghost"
               size="icon"
               onClick={() => setShowMenu(!showMenu)}
-              className={`rounded-xl ${darkMode ? 'text-white hover:bg-gray-700' : 'text-gray-600 hover:bg-orange-100'}`}
+              className={`rounded-xl ${darkMode ? 'text-white hover:bg-gray-700' : 'text-gray-600 hover:bg-purple-100'}`}
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -291,9 +293,9 @@ export function HomeScreen() {
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className={`absolute right-4 top-16 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl border ${darkMode ? 'border-gray-700' : 'border-orange-100'} overflow-hidden z-50 w-64`}
+              className={`absolute right-4 top-16 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl border ${darkMode ? 'border-gray-700' : 'border-purple-100'} overflow-hidden z-50 w-64`}
             >
-              <div className={`p-3 ${darkMode ? 'bg-gray-700' : 'bg-gradient-to-r from-orange-500 to-red-500'}`}>
+              <div className={`p-3 ${darkMode ? 'bg-gray-700' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}>
                 <p className={`font-bold ${darkMode ? 'text-white' : 'text-white'}`}>{displayName}</p>
                 <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-white/80'}`}>{user?.phone}</p>
               </div>
@@ -301,9 +303,9 @@ export function HomeScreen() {
               <div className="p-2">
                 <button
                   onClick={() => { setScreen('profile'); setShowMenu(false) }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-orange-50 text-gray-900'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-purple-50 text-gray-900'}`}
                 >
-                  <User className="w-5 h-5 text-orange-500" />
+                  <User className="w-5 h-5 text-purple-500" />
                   <div className="text-left">
                     <span className="font-medium">My Profile / मेरी प्रोफ़ाइल</span>
                   </div>
@@ -311,7 +313,7 @@ export function HomeScreen() {
                 
                 <button
                   onClick={() => { setScreen('referral'); setShowMenu(false) }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-orange-50 text-gray-900'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-purple-50 text-gray-900'}`}
                 >
                   <Gift className="w-5 h-5 text-green-500" />
                   <div className="text-left">
@@ -323,7 +325,7 @@ export function HomeScreen() {
                 
                 <button
                   onClick={() => { setScreen('terms'); setShowMenu(false) }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-orange-50 text-gray-900'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-purple-50 text-gray-900'}`}
                 >
                   <FileText className="w-5 h-5 text-gray-500" />
                   <span>Terms & Conditions / नियम और शर्तें</span>
@@ -331,7 +333,7 @@ export function HomeScreen() {
                 
                 <button
                   onClick={() => { setScreen('about'); setShowMenu(false) }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-orange-50 text-gray-900'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-purple-50 text-gray-900'}`}
                 >
                   <Info className="w-5 h-5 text-gray-500" />
                   <span>About Us / हमारे बारे में</span>
@@ -339,7 +341,7 @@ export function HomeScreen() {
                 
                 <button
                   onClick={() => { setScreen('contact'); setShowMenu(false) }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-orange-50 text-gray-900'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-purple-50 text-gray-900'}`}
                 >
                   <Phone className="w-5 h-5 text-gray-500" />
                   <span>Contact Us / संपर्क करें</span>
@@ -349,7 +351,7 @@ export function HomeScreen() {
                 
                 <button
                   onClick={() => { setScreen('admin'); setShowMenu(false) }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-orange-50 text-gray-900'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-purple-50 text-gray-900'}`}
                 >
                   <Shield className="w-5 h-5 text-gray-500" />
                   <span>Admin Panel / एडमिन पैनल</span>
@@ -368,7 +370,7 @@ export function HomeScreen() {
           animate={{ opacity: 1, y: 0 }}
           className="mx-4 mt-4"
         >
-          <div className={`rounded-2xl overflow-hidden shadow-lg ${darkMode ? 'bg-gradient-to-br from-orange-900/80 via-red-900/80 to-pink-900/80' : 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500'}`}>
+          <div className={`rounded-2xl overflow-hidden shadow-lg ${darkMode ? 'bg-gradient-to-br from-purple-900/80 via-pink-900/80 to-rose-900/80' : 'bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500'}`}>
             <div className="p-4">
               {/* Live Badge */}
               <div className="flex items-center justify-between mb-3">
@@ -444,7 +446,7 @@ export function HomeScreen() {
                 key={idx}
                 className={`h-1.5 rounded-full transition-all ${
                   idx === currentBanner 
-                    ? 'w-4 bg-orange-500' 
+                    ? 'w-4 bg-purple-500' 
                     : 'w-1.5 bg-gray-300'
                 }`}
               />
@@ -459,22 +461,22 @@ export function HomeScreen() {
           transition={{ delay: 0.1 }}
           className="mx-4 mt-4"
         >
-          <div className={`rounded-2xl p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-orange-100'} border shadow-lg`}>
+          <div className={`rounded-2xl p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-purple-100'} border shadow-lg`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-yellow-500" />
                 <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Your Progress</span>
               </div>
-              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs">
+              <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-xs">
                 Level 2
               </Badge>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               {/* Daily Streak */}
-              <div className={`text-center p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-orange-50'}`}>
+              <div className={`text-center p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
                 <div className="flex items-center justify-center gap-1 mb-1">
-                  <Flame className="w-5 h-5 text-orange-500" />
+                  <Flame className="w-5 h-5 text-purple-500" />
                   <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{dailyStreak}</span>
                 </div>
                 <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Day Streak</p>
@@ -503,18 +505,28 @@ export function HomeScreen() {
             <div className="mt-3">
               <div className="flex items-center justify-between mb-1">
                 <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Next Level Progress</span>
-                <span className={`text-xs font-medium ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>650/1000 XP</span>
+                <span className={`text-xs font-medium ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>650/1000 XP</span>
               </div>
               <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} overflow-hidden`}>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: '65%' }}
                   transition={{ delay: 0.5, duration: 1 }}
-                  className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full"
+                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
                 />
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* User Profile Card */}
+        {/* Free Access Countdown Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mt-4"
+        >
+          <FreeAccessBanner darkMode={darkMode} />
         </motion.div>
 
         {/* User Profile Card */}
@@ -565,7 +577,7 @@ export function HomeScreen() {
                         Account Active
                       </Badge>
                     ) : (
-                      <Badge className="bg-orange-500/20 text-orange-600 dark:bg-orange-500/30 dark:text-orange-300 border border-orange-500/30">
+                      <Badge className="bg-purple-500/20 text-purple-600 dark:bg-purple-500/30 dark:text-purple-300 border border-purple-500/30">
                         <Zap className="w-3 h-3 mr-1" />
                         Not Activated
                       </Badge>
@@ -716,16 +728,16 @@ export function HomeScreen() {
           transition={{ delay: 0.05 }}
           className="px-4 py-4"
         >
-          <div className={`rounded-2xl p-4 mb-3 ${darkMode ? 'bg-gradient-to-r from-orange-900/30 to-amber-900/30 border border-orange-800' : 'bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200'}`}>
+          <div className={`rounded-2xl p-4 mb-3 ${darkMode ? 'bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-800' : 'bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200'}`}>
             <h3 className={`font-bold text-lg mb-1 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               <span className="text-2xl">🎯</span>
               Help Categories - मदद की श्रेणियां
             </h3>
-            <p className={`text-sm ${darkMode ? 'text-orange-300' : 'text-orange-700'} mb-1`}>
+            <p className={`text-sm ${darkMode ? 'text-purple-300' : 'text-purple-700'} mb-1`}>
               45 ways to earn by helping others!
             </p>
             <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Tap any card to see income potential! <span className="text-orange-500 font-medium">⭐ First 15 = Daily Needs</span>
+              Tap any card to see income potential! <span className="text-purple-500 font-medium">⭐ First 15 = Daily Needs</span>
             </p>
           </div>
           
@@ -749,12 +761,12 @@ export function HomeScreen() {
                   })
                   setShowStoryModal(true)
                 }}
-                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-md overflow-hidden border ${card.isDailyNeed ? (darkMode ? 'border-orange-500/50 ring-1 ring-orange-500/30' : 'border-orange-300 ring-1 ring-orange-200') : (darkMode ? 'border-gray-700' : 'border-gray-100')} cursor-pointer relative`}
+                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-md overflow-hidden border ${card.isDailyNeed ? (darkMode ? 'border-purple-500/50 ring-1 ring-purple-500/30' : 'border-purple-300 ring-1 ring-purple-200') : (darkMode ? 'border-gray-700' : 'border-gray-100')} cursor-pointer relative`}
               >
                 {/* Daily Need Badge for first 15 cards */}
                 {card.isDailyNeed && (
                   <div className="absolute top-0 right-0 z-10">
-                    <Badge className="text-[8px] bg-orange-500 text-white rounded-tl-none rounded-br-none rounded-bl-lg px-1.5 py-0.5">
+                    <Badge className="text-[8px] bg-purple-500 text-white rounded-tl-none rounded-br-none rounded-bl-lg px-1.5 py-0.5">
                       Daily
                     </Badge>
                   </div>
@@ -770,7 +782,7 @@ export function HomeScreen() {
                   <p className={`text-[10px] text-center ${darkMode ? 'text-gray-500' : 'text-gray-400'} mb-1 line-clamp-1`}>
                     {card.situationHi}
                   </p>
-                  <p className={`text-[10px] font-medium text-center ${darkMode ? 'text-orange-400' : 'text-orange-600'} line-clamp-1`}>
+                  <p className={`text-[10px] font-medium text-center ${darkMode ? 'text-purple-400' : 'text-purple-600'} line-clamp-1`}>
                     {card.questionEn}
                   </p>
                 </div>
@@ -879,7 +891,7 @@ export function HomeScreen() {
                 </p>
                 <Button
                   onClick={() => setScreen('subscription')}
-                  className="bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold"
                 >
                   Activate Now / अभी सक्रिय करें
                 </Button>
@@ -1123,7 +1135,7 @@ export function HomeScreen() {
               {isActive && (
                 <Button
                   onClick={() => { setScreen('post-problem'); setShowResourceModal(false) }}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold h-14 rounded-2xl text-lg shadow-xl"
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold h-14 rounded-2xl text-lg shadow-xl"
                 >
                   Send Notification / नोटिफिकेशन भेजें
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -1140,7 +1152,7 @@ export function HomeScreen() {
                   </p>
                   <Button
                     onClick={() => { setScreen('subscription'); setShowResourceModal(false) }}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold"
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold"
                   >
                     Activate Now / अभी सक्रिय करें
                   </Button>
@@ -1152,7 +1164,7 @@ export function HomeScreen() {
       </AnimatePresence>
 
       {/* Bottom Navigation - Fixed Footer */}
-      <nav className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-gray-800/95' : 'bg-white/95'} backdrop-blur-xl border-t ${darkMode ? 'border-gray-700' : 'border-orange-100'} shadow-2xl z-40`}>
+      <nav className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-gray-800/95' : 'bg-white/95'} backdrop-blur-xl border-t ${darkMode ? 'border-gray-700' : 'border-purple-100'} shadow-2xl z-40`}>
         <div className="flex items-center justify-around py-2 px-2">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -1160,10 +1172,10 @@ export function HomeScreen() {
             onClick={() => setScreen('home')}
             className="flex flex-col items-center gap-1 p-2"
           >
-            <div className={`w-11 h-11 rounded-2xl ${darkMode ? 'bg-orange-500/20' : 'bg-orange-100'} flex items-center justify-center`}>
-              <Home className="w-5 h-5 text-orange-600" />
+            <div className={`w-11 h-11 rounded-2xl ${darkMode ? 'bg-purple-500/20' : 'bg-purple-100'} flex items-center justify-center`}>
+              <Home className="w-5 h-5 text-purple-600" />
             </div>
-            <span className={`text-xs font-medium ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>Home</span>
+            <span className={`text-xs font-medium ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Home</span>
           </motion.button>
           
           <motion.button
@@ -1184,7 +1196,7 @@ export function HomeScreen() {
             onClick={() => canPost ? setScreen('post-problem') : setScreen('subscription')}
             className="flex flex-col items-center gap-1 p-2 -mt-4"
           >
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center shadow-2xl border-4 border-white">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 flex items-center justify-center shadow-2xl border-4 border-white">
               <span className="text-white text-3xl font-light">+</span>
             </div>
             <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Post</span>
@@ -1218,6 +1230,9 @@ export function HomeScreen() {
 
       {/* SOS Emergency Button */}
       <SOSFloatingButton darkMode={darkMode} />
+      
+      {/* Help Chatbot */}
+      <HelpChatbot />
       
       {/* Copyright Footer */}
       <footer className="fixed bottom-20 right-3 z-40">

@@ -152,7 +152,7 @@ export function ContactScreen({ onBack }: ContactScreenProps) {
                 </div>
                 <p className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'} text-sm`}>Email</p>
                 <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>ईमेल</p>
-                <p className={`text-sm font-medium ${darkMode ? 'text-green-400' : 'text-green-600'} mt-1`}>support@help2earn.com</p>
+                <p className={`text-sm font-medium ${darkMode ? 'text-green-400' : 'text-green-600'} mt-1`}>support@communityhelpnetwork.app</p>
               </CardContent>
             </Card>
           </motion.div>

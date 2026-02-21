@@ -553,7 +553,7 @@ export function ProfileScreen() {
 
         {/* App Version */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Help2Earn v1.0.0 • Production Build
+          Community Help Network v1.0.0 • Production Build
         </p>
       </main>
 

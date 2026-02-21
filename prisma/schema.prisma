@@ -1,4 +1,4 @@
-// Help2Earn - Production-Grade PostgreSQL Schema
+// Community Help Network - Production-Grade PostgreSQL Schema
 // Hyperlocal Task & Earning Network (20km radius)
 // Referral growth + Real activity based earning - No MLM, No Fake Guarantee
 
@@ -1436,4 +1436,73 @@ model WeeklyEarningsSummary {
 
   @@unique([userId, weekStart])
   @@index([weekStart])
+}
+
+// ==================== VISITOR TRACKING ====================
+
+// Visitor Tracking - Track app visitors
+model Visitor {
+  id String @id @default(cuid())
+
+  // Visitor info
+  sessionId String @unique // Browser session ID
+  userId    String? // If logged in
+
+  // Device info
+  deviceType String? // mobile, tablet, desktop
+  browser    String?
+  os         String?
+
+  // Location
+  country String?
+  city    String?
+  ip      String?
+
+  // Referral
+  referrer    String? // Where they came from
+  utmSource   String?
+  utmCampaign String?
+
+  // Activity
+  pageViews    Int @default(1)
+  lastPage     String?
+  didRegister  Boolean @default(false)
+  didLogin     Boolean @default(false)
+
+  // Timestamps
+  firstVisit DateTime @default(now())
+  lastVisit  DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([firstVisit])
+  @@index([didRegister])
+}
+
+// Daily Visitor Stats
+model DailyVisitorStat {
+  id String @id @default(cuid())
+
+  // Date
+  date String @unique // YYYY-MM-DD
+
+  // Visitor counts
+  totalVisitors    Int @default(0)
+  uniqueVisitors   Int @default(0)
+  newVisitors      Int @default(0)
+  returningVisitors Int @default(0)
+
+  // Registration
+  registrations Int @default(0)
+  logins        Int @default(0)
+
+  // Device breakdown
+  mobileVisitors  Int @default(0)
+  desktopVisitors Int @default(0)
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
 }

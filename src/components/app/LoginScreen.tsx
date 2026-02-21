@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Loader2, Shield, AlertCircle, CheckCircle, HandHeart, User, MapPin, Navigation, Building, Home, Map, Eye, EyeOff, Lock, ArrowRight, KeyRound } from 'lucide-react'
 import { useAppStore } from '@/store'
+import { trackVisitorAction } from '@/lib/visitor-tracking'
 
 export function LoginScreen() {
   const [name, setName] = useState('')
@@ -113,6 +114,9 @@ export function LoginScreen() {
         login(data.user)
         setUser(data.user)
         
+        // Track login
+        trackVisitorAction('login')
+        
         // Always redirect to home after login
         setScreen('home')
       } else {
@@ -182,6 +186,9 @@ export function LoginScreen() {
       
       if (data.success) {
         setSuccess('Account created successfully! / खाता सफलतापूर्वक बनाया गया!')
+        
+        // Track registration
+        trackVisitorAction('register')
         
         // Store user data
         login(data.user)
@@ -319,7 +326,7 @@ export function LoginScreen() {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-orange-50 via-white to-pink-50'}`}>
+    <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-purple-50 via-white to-pink-50'}`}>
       {/* Header */}
       <header className="pt-4 px-4">
         <Button
@@ -343,7 +350,7 @@ export function LoginScreen() {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: 'spring' }}
-            className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 shadow-xl flex items-center justify-center"
+            className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-xl flex items-center justify-center"
           >
             <HandHeart className="w-8 h-8 text-white" />
           </motion.div>
@@ -363,8 +370,8 @@ export function LoginScreen() {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="w-full max-w-sm"
         >
-          <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-orange-100'} border shadow-xl rounded-2xl overflow-hidden`}>
-            <div className={`h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500`} />
+          <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-purple-100'} border shadow-xl rounded-2xl overflow-hidden`}>
+            <div className={`h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500`} />
             <CardContent className="p-4">
               <div className="space-y-3">
                 {/* Name Input - Only for new user */}
@@ -387,7 +394,7 @@ export function LoginScreen() {
                           setName(e.target.value)
                           setError('')
                         }}
-                        className={`pl-10 h-11 text-base rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-500' : 'border-gray-200 text-gray-900 placeholder:text-gray-400'} focus:border-orange-500 focus:ring-orange-500`}
+                        className={`pl-10 h-11 text-base rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-500' : 'border-gray-200 text-gray-900 placeholder:text-gray-400'} focus:border-purple-500 focus:ring-purple-500`}
                         maxLength={50}
                         disabled={isLoading}
                       />
@@ -412,7 +419,7 @@ export function LoginScreen() {
                       placeholder="Mobile number"
                       value={phone}
                       onChange={(e) => handlePhoneChange(e.target.value)}
-                      className={`pl-12 h-11 text-base rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-500' : 'border-gray-200 text-gray-900 placeholder:text-gray-400'} focus:border-orange-500 focus:ring-orange-500`}
+                      className={`pl-12 h-11 text-base rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-500' : 'border-gray-200 text-gray-900 placeholder:text-gray-400'} focus:border-purple-500 focus:ring-purple-500`}
                       maxLength={10}
                       disabled={isLoading}
                     />
@@ -421,7 +428,7 @@ export function LoginScreen() {
                     )}
                   </div>
                   {phone.length === 10 && (
-                    <p className={`text-xs mt-1 ${isNewUser ? 'text-orange-500' : 'text-green-500'}`}>
+                    <p className={`text-xs mt-1 ${isNewUser ? 'text-purple-500' : 'text-green-500'}`}>
                       {isNewUser ? '📱 New user - Please register' : '✓ User found - Please login'}
                     </p>
                   )}
@@ -442,7 +449,7 @@ export function LoginScreen() {
                         setPassword(e.target.value)
                         setError('')
                       }}
-                      className={`pl-10 pr-10 h-11 text-base rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-500' : 'border-gray-200 text-gray-900 placeholder:text-gray-400'} focus:border-orange-500 focus:ring-orange-500`}
+                      className={`pl-10 pr-10 h-11 text-base rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-500' : 'border-gray-200 text-gray-900 placeholder:text-gray-400'} focus:border-purple-500 focus:ring-purple-500`}
                       maxLength={30}
                       disabled={isLoading}
                     />
@@ -476,7 +483,7 @@ export function LoginScreen() {
                           setConfirmPassword(e.target.value)
                           setError('')
                         }}
-                        className={`pl-10 h-11 text-base rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-500' : 'border-gray-200 text-gray-900 placeholder:text-gray-400'} focus:border-orange-500 focus:ring-orange-500`}
+                        className={`pl-10 h-11 text-base rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-500' : 'border-gray-200 text-gray-900 placeholder:text-gray-400'} focus:border-purple-500 focus:ring-purple-500`}
                         maxLength={30}
                         disabled={isLoading}
                       />
@@ -496,10 +503,10 @@ export function LoginScreen() {
                     className="space-y-3"
                   >
                     {/* Location Detection */}
-                    <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-orange-50'} border ${darkMode ? 'border-gray-600' : 'border-orange-200'}`}>
+                    <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-purple-50'} border ${darkMode ? 'border-gray-600' : 'border-purple-200'}`}>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-orange-500" />
+                          <MapPin className="w-4 h-4 text-purple-500" />
                           <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>Your Location</span>
                         </div>
                         <Button
@@ -627,7 +634,7 @@ export function LoginScreen() {
                   <Button
                     onClick={isNewUser ? handleRegister : handleLogin}
                     disabled={isLoading || phone.length !== 10 || !password}
-                    className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-bold shadow-lg disabled:opacity-50 transition-all"
+                    className="w-full h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-bold shadow-lg disabled:opacity-50 transition-all"
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
@@ -651,7 +658,7 @@ export function LoginScreen() {
                       setError('')
                       setSuccess('')
                     }}
-                    className={`text-sm ${darkMode ? 'text-orange-400 hover:text-orange-300' : 'text-orange-600 hover:text-orange-700'}`}
+                    className={`text-sm ${darkMode ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`}
                   >
                     {isNewUser ? 'Already have an account? Login / पहले से खाता है? लॉगिन करें' : "Don't have an account? Register / खाता नहीं है? पंजीकरण करें"}
                   </button>

@@ -24,6 +24,7 @@ import { LegalScreen } from '@/components/app/LegalScreen'
 import { UserDashboard } from '@/components/app/UserDashboard'
 import { LeaderDashboardScreen } from '@/components/app/LeaderDashboardScreen'
 import SplashScreen from '@/components/ui/SplashScreen'
+import { useVisitorTracking } from '@/lib/visitor-tracking'
 
 export default function Home() {
   const { 
@@ -36,6 +37,9 @@ export default function Home() {
     goBack,
     requestLocation
   } = useAppStore()
+  
+  // Visitor tracking
+  useVisitorTracking()
   
   const [isLoading, setIsLoading] = useState(true)
   const [isHydrated, setIsHydrated] = useState(false)

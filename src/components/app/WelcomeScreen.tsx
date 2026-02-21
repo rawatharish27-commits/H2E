@@ -484,7 +484,7 @@ export function WelcomeScreen() {
   }
   
   return (
-    <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-orange-50 via-white to-pink-50'}`}>
+    <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-purple-50 via-white to-pink-50'}`}>
       {/* Header */}
       <header className="sticky top-0 z-50 pt-4 px-4 pb-2 bg-white/80 backdrop-blur-lg">
         <div className="flex items-center justify-between">
@@ -501,7 +501,7 @@ export function WelcomeScreen() {
               <span className={`font-bold text-base`}>
                 <span className="text-blue-600">Help</span>
                 <span className="text-green-600">2</span>
-                <span className="text-orange-600">Earn</span>
+                <span className="text-purple-600">Earn</span>
               </span>
               <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>लोगों को जोड़ना</p>
             </div>
@@ -524,9 +524,9 @@ export function WelcomeScreen() {
                   key={index}
                   className={`h-1.5 rounded-full transition-all ${
                     index === currentScreen 
-                      ? 'w-6 bg-gradient-to-r from-orange-500 to-red-500' 
+                      ? 'w-6 bg-gradient-to-r from-purple-500 to-pink-500' 
                       : index < currentScreen 
-                        ? 'w-1.5 bg-orange-400' 
+                        ? 'w-1.5 bg-purple-400' 
                         : darkMode ? 'w-1.5 bg-gray-600' : 'w-1.5 bg-gray-300'
                   }`}
                 />
@@ -543,7 +543,7 @@ export function WelcomeScreen() {
         className="px-4 py-3"
       >
         {/* Live Stats Section */}
-        <div className={`rounded-2xl overflow-hidden shadow-lg mb-3 ${darkMode ? 'bg-gradient-to-br from-orange-900/80 via-red-900/80 to-pink-900/80' : 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500'}`}>
+        <div className={`rounded-2xl overflow-hidden shadow-lg mb-3 ${darkMode ? 'bg-gradient-to-br from-purple-900/80 via-pink-900/80 to-rose-900/80' : 'bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500'}`}>
           <div className="p-3">
             {/* Live Badge */}
             <div className="flex items-center justify-between mb-2">
@@ -598,12 +598,12 @@ export function WelcomeScreen() {
         </div>
 
         {/* Gamification Row */}
-        <div className={`rounded-xl p-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-orange-100'} border shadow-lg mb-3`}>
+        <div className={`rounded-xl p-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-purple-100'} border shadow-lg mb-3`}>
           <div className="grid grid-cols-4 gap-2">
             {/* Daily Streak */}
-            <div className={`text-center p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-orange-50'}`}>
+            <div className={`text-center p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
               <div className="flex items-center justify-center gap-1">
-                <Flame className="w-4 h-4 text-orange-500" />
+                <Flame className="w-4 h-4 text-purple-500" />
                 <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>3</span>
               </div>
               <p className={`text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Streak</p>
@@ -766,9 +766,9 @@ export function WelcomeScreen() {
         transition={{ delay: 0.5 }}
         className="px-4 py-2"
       >
-        <div className={`p-4 rounded-2xl text-center ${darkMode ? 'bg-gradient-to-r from-orange-900/30 to-red-900/30' : 'bg-gradient-to-r from-orange-100 to-red-100'} border ${darkMode ? 'border-orange-800' : 'border-orange-200'}`}>
+        <div className={`p-4 rounded-2xl text-center ${darkMode ? 'bg-gradient-to-r from-purple-900/30 to-pink-900/30' : 'bg-gradient-to-r from-purple-100 to-pink-100'} border ${darkMode ? 'border-purple-800' : 'border-purple-200'}`}>
           <div className="flex items-center justify-center gap-2 mb-1">
-            <Users className="w-5 h-5 text-orange-500" />
+            <Users className="w-5 h-5 text-purple-500" />
             <p className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Share & Build Your Network!
             </p>
@@ -840,12 +840,12 @@ export function WelcomeScreen() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className={`mt-3 p-2 rounded-xl ${darkMode ? 'bg-orange-900/30 border border-orange-800' : 'bg-orange-50 border border-orange-200'}`}
+                className={`mt-3 p-2 rounded-xl ${darkMode ? 'bg-purple-900/30 border border-purple-800' : 'bg-purple-50 border border-purple-200'}`}
               >
-                <p className={`text-sm font-bold text-center ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                <p className={`text-sm font-bold text-center ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
                   💰 {screen.fomoText}
                 </p>
-                <p className={`text-xs text-center ${darkMode ? 'text-orange-300' : 'text-orange-500'}`}>
+                <p className={`text-xs text-center ${darkMode ? 'text-purple-300' : 'text-purple-500'}`}>
                   {screen.fomoTextHi}
                 </p>
               </motion.div>
@@ -940,7 +940,7 @@ export function WelcomeScreen() {
       <div className="px-4 pb-6 pt-2">
         <Button
           onClick={currentScreen < EXPLAIN_SCREENS.length - 1 ? handleNext : handleGetStarted}
-          className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-bold shadow-lg"
+          className="w-full h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-bold shadow-lg"
         >
           {currentScreen < EXPLAIN_SCREENS.length - 1 ? (
             <>

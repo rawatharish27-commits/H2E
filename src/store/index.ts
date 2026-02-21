@@ -443,6 +443,15 @@ export const useAppStore = create<AppState & AppActions>()(
       isSubscriptionActive: () => {
         const { user } = get()
         if (!user) return false
+        
+        // FREE ACCESS until April 1, 2026
+        const freeAccessEndDate = new Date('2026-04-01T00:00:00')
+        const now = new Date()
+        if (now < freeAccessEndDate) {
+          return true // Free access for all users
+        }
+        
+        // After April 1, 2026 - check payment status
         if (!user.paymentActive) return false
         if (user.activeTill && new Date(user.activeTill) < new Date()) return false
         return true
@@ -451,6 +460,18 @@ export const useAppStore = create<AppState & AppActions>()(
       canPostProblem: () => {
         const { user } = get()
         if (!user) return false
+        
+        // FREE ACCESS until April 1, 2026
+        const freeAccessEndDate = new Date('2026-04-01T00:00:00')
+        const now = new Date()
+        if (now < freeAccessEndDate) {
+          // Free access - only check basic conditions
+          if (user.isBlocked || user.isBanned) return false
+          if (user.trustScore < 30) return false
+          return true
+        }
+        
+        // After April 1, 2026 - check payment
         if (!get().isSubscriptionActive()) return false
         if (user.isBlocked || user.isBanned) return false
         if (user.trustScore < 30) return false
@@ -460,6 +481,17 @@ export const useAppStore = create<AppState & AppActions>()(
       canViewProblems: () => {
         const { user } = get()
         if (!user) return false
+        
+        // FREE ACCESS until April 1, 2026
+        const freeAccessEndDate = new Date('2026-04-01T00:00:00')
+        const now = new Date()
+        if (now < freeAccessEndDate) {
+          // Free access - only check basic conditions
+          if (user.isBlocked || user.isBanned) return false
+          return true
+        }
+        
+        // After April 1, 2026 - check payment
         if (!get().isSubscriptionActive()) return false
         if (user.isBlocked || user.isBanned) return false
         return true

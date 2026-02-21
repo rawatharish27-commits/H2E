@@ -72,9 +72,9 @@ export function SubscriptionScreen() {
 
   // Get UPI ID from environment variable (with fallback)
   const adminUpi = process.env.NEXT_PUBLIC_UPI_ID || 'rentforhelp@upi'
-  const payeeName = process.env.NEXT_PUBLIC_UPI_PAYEE_NAME || 'Help2Earn'
+  const payeeName = process.env.NEXT_PUBLIC_UPI_PAYEE_NAME || 'Community Help Network'
   const amount = 49
-  const transactionNote = 'Help2Earn Subscription'
+  const transactionNote = 'Community Help Network Subscription'
 
   const handleCopyUpi = () => {
     navigator.clipboard.writeText(adminUpi)
@@ -185,15 +185,15 @@ export function SubscriptionScreen() {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-orange-50 via-white to-pink-50'}`}>
+    <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-purple-50 via-white to-pink-50'}`}>
       {/* Header */}
-      <header className={`sticky top-0 z-50 ${darkMode ? 'bg-gray-800/90' : 'bg-white/90'} backdrop-blur-xl border-b ${darkMode ? 'border-gray-700' : 'border-orange-100'} shadow-lg`}>
+      <header className={`sticky top-0 z-50 ${darkMode ? 'bg-gray-800/90' : 'bg-white/90'} backdrop-blur-xl border-b ${darkMode ? 'border-gray-700' : 'border-purple-100'} shadow-lg`}>
         <div className="px-4 py-3 flex items-center gap-3">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={goBack}
-            className={`rounded-xl ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-orange-100'}`}
+            className={`rounded-xl ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-purple-100'}`}
           >
             <ArrowLeft className={`w-5 h-5 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
           </Button>
@@ -211,8 +211,8 @@ export function SubscriptionScreen() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-4"
         >
-          <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-orange-100'} border shadow-xl rounded-2xl overflow-hidden`}>
-            <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 p-6 text-white text-center">
+          <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-purple-100'} border shadow-xl rounded-2xl overflow-hidden`}>
+            <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 p-6 text-white text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -220,7 +220,7 @@ export function SubscriptionScreen() {
                 className="w-24 h-24 mx-auto mb-4 rounded-2xl bg-white flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-lg"
                 onClick={openAnyUpiApp}
               >
-                <QrCode className="w-12 h-12 text-orange-500" />
+                <QrCode className="w-12 h-12 text-purple-500" />
               </motion.div>
               
               <h2 className="text-xl font-bold mb-1">Tap to Pay ₹{amount}</h2>
@@ -267,7 +267,7 @@ export function SubscriptionScreen() {
               </div>
 
               {/* UPI ID Display */}
-              <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-orange-50'} border ${darkMode ? 'border-gray-600' : 'border-orange-200'}`}>
+              <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-purple-50'} border ${darkMode ? 'border-gray-600' : 'border-purple-200'}`}>
                 <p className={`text-xs font-medium mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>UPI ID:</p>
                 <div className="flex items-center justify-between">
                   <code className={`font-mono font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{adminUpi}</code>
@@ -286,7 +286,7 @@ export function SubscriptionScreen() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-orange-100'} border shadow-xl rounded-2xl`}>
+          <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-purple-100'} border shadow-xl rounded-2xl`}>
             <CardContent className="p-4">
               <h3 className={`font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 After Payment - Submit Details
@@ -325,7 +325,7 @@ export function SubscriptionScreen() {
                 <Button
                   onClick={handleSubmit}
                   disabled={isLoading || !upiId}
-                  className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl shadow-lg disabled:opacity-50"
+                  className="w-full h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg disabled:opacity-50"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

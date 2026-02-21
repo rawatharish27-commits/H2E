@@ -1,4 +1,4 @@
-// Location Validation Service for Help2Earn Marketplace
+// Location Validation Service for Community Help Network Marketplace
 // GPS validation, distance calculations, and spoof detection
 
 import { db } from '@/lib/db'

@@ -78,7 +78,7 @@ function SplashScreen() {
             {/* Logo Image */}
             <Image
               src="/images/logo.png"
-              alt="Help2Earn Logo"
+              alt="Community Help Network Logo"
               fill
               className="object-cover"
               priority
@@ -87,9 +87,9 @@ function SplashScreen() {
           
           {/* Brand Name */}
           <h1 className="text-3xl font-bold drop-shadow-lg">
-            <span className="text-blue-200">Help</span>
-            <span className="text-green-200">2</span>
-            <span className="text-orange-200">Earn</span>
+            <span className="text-blue-200">Community</span>
+            <span className="text-green-200"> Help </span>
+            <span className="text-orange-200">Network</span>
           </h1>
           
           {/* Tagline */}

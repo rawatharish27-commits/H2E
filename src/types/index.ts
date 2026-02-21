@@ -1,4 +1,4 @@
-// Core Types for Help2Earn Marketplace - Production Grade
+// Core Types for Community Help Network Marketplace - Production Grade
 
 // User Types
 export interface User {

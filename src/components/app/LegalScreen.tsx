@@ -53,10 +53,10 @@ export function LegalScreen() {
           </h3>
           <div className={`rounded-xl p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border`}>
             <div className="space-y-2 text-sm">
-              <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}><strong>Platform Name:</strong> Help2Earn</p>
+              <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}><strong>Platform Name:</strong> Community Help Network</p>
               <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}><strong>Type:</strong> Hyper-local Discovery Platform</p>
               <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}><strong>Jurisdiction:</strong> India</p>
-              <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}><strong>Support Email:</strong> support@help2earn.app</p>
+              <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}><strong>Support Email:</strong> support@communityhelpnetwork.app</p>
             </div>
           </div>
         </section>
@@ -75,7 +75,7 @@ export function LegalScreen() {
                 PLEASE READ THIS CAREFULLY:
               </p>
               <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• <strong>Help2Earn is a DISCOVERY PLATFORM only</strong></li>
+                <li>• <strong>Community Help Network is a DISCOVERY PLATFORM only</strong></li>
                 <li>• We connect users who need help with nearby helpers</li>
                 <li>• We do NOT provide any services ourselves</li>
                 <li>• We do NOT guarantee service quality or completion</li>
@@ -96,7 +96,7 @@ export function LegalScreen() {
           </h3>
           <div className={`rounded-xl p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border`}>
             <p className={`text-sm mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Under Section 79 of the Information Technology Act, 2000, as an intermediary, Help2Earn:
+              Under Section 79 of the Information Technology Act, 2000, as an intermediary, Community Help Network:
             </p>
             <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <li>• Is NOT liable for third-party content or actions</li>
@@ -148,10 +148,10 @@ export function LegalScreen() {
               Under the Consumer Protection Act, 2019:
             </p>
             <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              <li>• Help2Earn is a technology platform, not a service provider</li>
+              <li>• Community Help Network is a technology platform, not a service provider</li>
               <li>• Users transact at their own risk</li>
               <li>• Consumer disputes should be resolved between parties</li>
-              <li>• For grievances, contact: grievance@help2earn.app</li>
+              <li>• For grievances, contact: grievance@communityhelpnetwork.app</li>
             </ul>
           </div>
         </section>
@@ -184,7 +184,7 @@ export function LegalScreen() {
           <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>7. Indemnity</h3>
           <div className={`rounded-xl p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border`}>
             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              You agree to indemnify and hold harmless Help2Earn, its officers, employees, and agents from any claims, damages, losses, or expenses arising from:
+              You agree to indemnify and hold harmless Community Help Network, its officers, employees, and agents from any claims, damages, losses, or expenses arising from:
             </p>
             <ul className={`mt-3 space-y-1 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <li>• Your use of the platform</li>
@@ -221,7 +221,7 @@ export function LegalScreen() {
           <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>9. Intellectual Property</h3>
           <div className={`rounded-xl p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border`}>
             <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              <li>• Help2Earn logo and brand are protected under Indian Copyright Act, 1957</li>
+              <li>• Community Help Network logo and brand are protected under Indian Copyright Act, 1957</li>
               <li>• User content posted remains user's property</li>
               <li>• By posting, users grant us license to display content on platform</li>
             </ul>
@@ -233,8 +233,8 @@ export function LegalScreen() {
           <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Contact for Legal Matters</h3>
           <div className={`rounded-xl p-4 ${darkMode ? 'bg-gradient-to-br from-blue-900/30 to-purple-900/30 border-blue-800' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'} border`}>
             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              <strong>For legal queries:</strong> legal@help2earn.app<br/>
-              <strong>For grievances:</strong> grievance@help2earn.app<br/>
+              <strong>For legal queries:</strong> legal@communityhelpnetwork.app<br/>
+              <strong>For grievances:</strong> grievance@communityhelpnetwork.app<br/>
               <strong>Response time:</strong> 48 working hours
             </p>
           </div>
