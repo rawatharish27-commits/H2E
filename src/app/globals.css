@@ -129,10 +129,8 @@
 html {
   font-size: 16px;
   -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
   scroll-behavior: smooth;
-  height: 100%;
-  overflow-y: auto;
+  /* Don't set height:100% - let it expand for scroll */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -160,37 +158,28 @@ body, .bg-background, .text-foreground, .bg-card, .text-card-foreground {
 
 /* ==================== ALL SCREEN CONTAINERS - ENABLE SCROLL ==================== */
 
-/* All min-h-screen containers should NOT block scroll - let body handle it */
+/* All min-h-screen containers should allow content to expand for scroll */
 .min-h-screen {
   min-height: 100vh;
-  min-height: -webkit-fill-available;
-  /* Don't add overflow here - let body handle scrolling */
+  min-height: 100dvh;
 }
 
-/* Fix h-screen (full height) - should not block scroll */
+/* Fix h-screen (full height) */
 .h-screen {
   height: 100vh;
-  height: -webkit-fill-available;
-  /* Don't add overflow here - let body handle scrolling */
+  height: 100dvh;
 }
 
-/* Flex containers - only add scroll if they have explicit height */
-.flex-col:not(.min-h-screen):not(.h-screen) {
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+/* Flex-col with min-h-screen should allow scroll through */
+.flex-col.min-h-screen {
+  overflow: visible;
 }
 
 /* ==================== iOS SPECIFIC FIXES ==================== */
 
 @supports (-webkit-touch-callout: none) {
-  html {
-    height: -webkit-fill-available;
-  }
-  
   body {
     min-height: -webkit-fill-available;
-    position: relative;
   }
   
   .min-h-screen {
@@ -208,16 +197,26 @@ body, .bg-background, .text-foreground, .bg-card, .text-card-foreground {
 [style*="overflow"], .overflow-auto, .overflow-y-auto, .overflow-scroll {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
-  overscroll-behavior-y: contain;
 }
 
-/* Mobile optimizations */
+/* Mobile scroll fix */
 @media (max-width: 768px) {
-  /* Ensure html and body allow scroll */
-  html, body {
+  /* Critical: ensure body is the scroll container */
+  html {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  
+  body {
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: none;
+  }
+  
+  /* Allow content to flow for scroll */
+  .min-h-screen, [class*="Screen"] > div {
+    overflow: visible !important;
   }
 }
 
