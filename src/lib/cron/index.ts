@@ -354,3 +354,267 @@ export async function runHourlyCronJobs(): Promise<{
     fraudDetection: results[1]
   }
 }
+
+/**
+ * 7-Day Engagement Flow
+ * Sends targeted notifications to users on specific days
+ * Day 1: Nearby help available
+ * Day 3: Social proof
+ * Day 6: Encourage contribution
+ */
+export async function send7DayEngagementFlow(): Promise<{
+  day1: number
+  day3: number
+  day6: number
+}> {
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+
+  let day1Sent = 0
+  let day3Sent = 0
+  let day6Sent = 0
+
+  // Day 1: New users - Show nearby help available
+  const day1Users = await db.user.findMany({
+    where: {
+      createdAt: {
+        gte: now,
+        lt: new Date(now.getTime() + 24 * 60 * 60 * 1000)
+      },
+      isBlocked: false,
+      isBanned: false
+    },
+    select: { id: true, areaCode: true }
+  })
+
+  for (const user of day1Users) {
+    // Check for nearby problems
+    const nearbyCount = await db.problem.count({
+      where: {
+        status: 'OPEN',
+        areaCode: user.areaCode || undefined
+      }
+    })
+
+    if (nearbyCount > 0) {
+      await createNotification({
+        userId: user.id,
+        type: 'HELP_ALERT',
+        title: '🆘 Help Needed Nearby!',
+        message: `${nearbyCount} help requests available near you. Be the first to help!`,
+        priority: 'HIGH'
+      }).catch(console.error)
+      day1Sent++
+    }
+  }
+
+  // Day 3: Show social proof
+  const day3Date = new Date(now)
+  day3Date.setDate(day3Date.getDate() - 3)
+
+  const day3Users = await db.user.findMany({
+    where: {
+      createdAt: {
+        gte: day3Date,
+        lt: new Date(day3Date.getTime() + 24 * 60 * 60 * 1000)
+      },
+      helpfulCount: 0, // Haven't helped yet
+      isBlocked: false,
+      isBanned: false
+    },
+    select: { id: true }
+  })
+
+  for (const user of day3Users) {
+    // Get today's helps count
+    const todayHelps = await db.feedback.count({
+      where: {
+        createdAt: { gte: now }
+      }
+    })
+
+    await createNotification({
+      userId: user.id,
+      type: 'SYSTEM',
+      title: '🌟 Community Update',
+      message: `Aaj ${todayHelps} logon ki madad hui! Aap bhi participate karein.`,
+      priority: 'NORMAL'
+    }).catch(console.error)
+    day3Sent++
+  }
+
+  // Day 6: Encourage contribution
+  const day6Date = new Date(now)
+  day6Date.setDate(day6Date.getDate() - 6)
+
+  const day6Users = await db.user.findMany({
+    where: {
+      createdAt: {
+        gte: day6Date,
+        lt: new Date(day6Date.getTime() + 24 * 60 * 60 * 1000)
+      },
+      helpfulCount: { equals: 0 },
+      problems: { none: {} }, // Haven't posted or helped
+      isBlocked: false,
+      isBanned: false
+    },
+    select: { id: true }
+  })
+
+  for (const user of day6Users) {
+    await createNotification({
+      userId: user.id,
+      type: 'SYSTEM',
+      title: '💪 Time to Get Started!',
+      message: 'Aapka account active hai! Kisi ki madad karein ya help request post karein.',
+      priority: 'HIGH'
+    }).catch(console.error)
+    day6Sent++
+  }
+
+  console.log(`[Cron] 7-Day Engagement: Day1=${day1Sent}, Day3=${day3Sent}, Day6=${day6Sent}`)
+
+  return {
+    day1: day1Sent,
+    day3: day3Sent,
+    day6: day6Sent
+  }
+}
+
+/**
+ * Reset daily counters for core helpers
+ * Runs at midnight
+ */
+export async function resetDailyCoreHelperCounters(): Promise<number> {
+  const result = await db.coreHelper.updateMany({
+    where: {
+      todayResponses: { gt: 0 }
+    },
+    data: {
+      todayResponses: 0
+    }
+  })
+
+  console.log(`[Cron] Reset daily counters for ${result.count} core helpers`)
+  return result.count
+}
+
+/**
+ * Check core helper response times
+ * Runs every 30 minutes
+ */
+export async function checkCoreHelperResponseTimes(): Promise<{
+  onTime: number
+  missed: number
+}> {
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000)
+
+  // Find problems from last 30 minutes
+  const recentProblems = await db.problem.findMany({
+    where: {
+      createdAt: { gte: thirtyMinutesAgo },
+      status: 'OPEN'
+    },
+    select: { id: true, areaCode: true }
+  })
+
+  let onTime = 0
+  let missed = 0
+
+  for (const problem of recentProblems) {
+    if (!problem.areaCode) continue
+
+    // Get core helpers for this area
+    const coreHelpers = await db.coreHelper.findMany({
+      where: {
+        areaCode: problem.areaCode,
+        status: 'ACTIVE'
+      },
+      select: { id: true, userId: true, lastResponseAt: true }
+    })
+
+    // Check if they responded
+    for (const helper of coreHelpers) {
+      const registration = await db.helperRegistration.findUnique({
+        where: {
+          problemId_helperId: {
+            problemId: problem.id,
+            helperId: helper.userId
+          }
+        }
+      })
+
+      if (registration && registration.registeredAt <= new Date(problem.createdAt.getTime() + 30 * 60 * 1000)) {
+        // Responded within 30 minutes
+        await db.coreHelper.update({
+          where: { id: helper.id },
+          data: {
+            responseStreak: { increment: 1 },
+            lastResponseAt: new Date()
+          }
+        })
+        onTime++
+      } else if (!registration) {
+        // Didn't respond - reset streak
+        await db.coreHelper.update({
+          where: { id: helper.id },
+          data: {
+            responseStreak: 0
+          }
+        })
+        missed++
+      }
+    }
+  }
+
+  console.log(`[Cron] Core helper responses: OnTime=${onTime}, Missed=${missed}`)
+  return { onTime, missed }
+}
+
+/**
+ * Update area density stats
+ * Minimum 5 visible interactions daily
+ */
+export async function updateAreaDensityStats(): Promise<number> {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const areas = await db.area.findMany({
+    select: { id: true, areaCode: true }
+  })
+
+  for (const area of areas) {
+    const [helps, posts, helpers] = await Promise.all([
+      db.feedback.count({
+        where: {
+          createdAt: { gte: today },
+          problem: { areaCode: area.areaCode }
+        }
+      }),
+      db.problem.count({
+        where: {
+          createdAt: { gte: today },
+          areaCode: area.areaCode
+        }
+      }),
+      db.helperRegistration.count({
+        where: {
+          registeredAt: { gte: today },
+          problem: { areaCode: area.areaCode }
+        }
+      })
+    ])
+
+    await db.area.update({
+      where: { id: area.id },
+      data: {
+        todayHelps: helps,
+        todayPosts: posts,
+        activeHelpers: helpers
+      }
+    })
+  }
+
+  console.log(`[Cron] Updated density stats for ${areas.length} areas`)
+  return areas.length
+}

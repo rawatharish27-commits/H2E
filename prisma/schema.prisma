@@ -20,6 +20,11 @@ model Area {
   areaCode String @unique // 20km zone identifier
   areaName String // e.g., "Dehradun Central"
 
+  // Location bounds
+  centerLat Float? // Center latitude
+  centerLng Float? // Center longitude
+  radiusKm  Int    @default(2) // Default 2km radius
+
   // Activation Requirements
   registeredUsers Int @default(0) // Need 50 minimum
   weeklyTasks     Int @default(0) // Need 10 minimum
@@ -29,6 +34,11 @@ model Area {
   isActive    Boolean   @default(false) // Active when all requirements met
   activatedAt DateTime?
 
+  // Official WhatsApp Group (only 1 per area)
+  whatsappGroupLink String?
+  whatsappGroupName String?
+  hasOfficialGroup  Boolean @default(false)
+
   // Leader Slots (max 3 per area)
   maxLeaderSlots Int @default(3)
   currentLeaders Int @default(0)
@@ -37,16 +47,140 @@ model Area {
   totalUsers    Int   @default(0)
   totalTasks    Int   @default(0)
   totalEarnings Float @default(0)
+  
+  // Daily activity for density engine
+  todayHelps    Int @default(0) // Helps today
+  todayPosts    Int @default(0) // Posts today
+  activeHelpers Int @default(0) // Active helpers today
 
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  leaders Leader[]
-  users   User[]
+  leaders     Leader[]
+  users       User[]
 
   @@index([areaCode])
   @@index([isActive])
+}
+
+// ==================== AREA ADMIN MODEL ====================
+
+// Official Area Admin - Only 1 per area
+model AreaAdmin {
+  id     String @id @default(cuid())
+  userId String @unique
+  areaId String @unique
+
+  // Status
+  status String @default("PENDING") // PENDING, ACTIVE, SUSPENDED
+
+  // Benefits (Early stage - Free entry)
+  premiumMonths Int @default(3) // 3 months premium free
+  premiumUntil  DateTime?
+  featured      Boolean @default(true) // Featured profile
+
+  // Badge
+  badgeType String @default("COMMUNITY_LEADER") // COMMUNITY_LEADER, AREA_ADMIN
+
+  // Responsibilities tracking
+  postsMonitored   Int @default(0)
+  sharesToWhatsApp Int @default(0)
+  groupMaintenance Int @default(0) // Groups maintained/disciplined
+
+  // Performance
+  avgResponseTime Int @default(0) // Minutes to share post
+  userRating      Float @default(0) // Rating from area users
+
+  // Revenue (Later stage only)
+  canEarnRevenue Boolean @default(false)
+  totalEarnings   Float @default(0)
+  paidUsersInArea Int @default(0)
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User  @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+// ==================== CORE HELPER MODEL ====================
+
+// Core Helpers - First 50 helpers per area with founding badge
+model CoreHelper {
+  id     String @id @default(cuid())
+  userId String
+  areaCode String
+
+  // Status
+  status String @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+
+  // Badge
+  badgeType String @default("FOUNDING_HELPER") // FOUNDING_HELPER, CORE_HELPER
+  badgeEarnedAt DateTime @default(now())
+
+  // Benefits
+  responseTimeRequired Int @default(30) // 30-min response rule
+  responseStreak       Int @default(0) // Consecutive responses
+  bestResponseStreak   Int @default(0)
+
+  // Performance
+  totalHelps     Int @default(0)
+  avgRating      Float @default(0)
+  responseRate   Float @default(0) // % of requests responded
+  avgResponseMin Int @default(0) // Average response time
+
+  // Activity tracking
+  lastResponseAt DateTime?
+  todayResponses Int @default(0)
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User  @relation(fields: [userId], references: [id])
+
+  @@unique([userId, areaCode])
+  @@index([userId])
+  @@index([areaCode])
+  @@index([status])
+}
+
+// ==================== SHAREABLE POST MODEL ====================
+
+// Track posts shared to WhatsApp by admins
+model ShareablePost {
+  id        String @id @default(cuid())
+  problemId String @unique
+  adminId   String
+
+  // Share content
+  shareTitle   String
+  shareMessage String // Auto-generated structured message
+  shareLink    String // App deep link
+
+  // WhatsApp safe format
+  formattedMessage String // Pre-formatted for WhatsApp
+
+  // Tracking
+  sharedAt   DateTime @default(now())
+  shareCount Int @default(0) // How many times shared
+  viewCount  Int @default(0) // Link views
+
+  // Status
+  status String @default("PENDING") // PENDING, SHARED, EXPIRED
+
+  // Metadata
+  createdAt DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id])
+
+  @@index([problemId])
+  @@index([adminId])
+  @@index([sharedAt])
 }
 
 // ==================== USER SYSTEM ====================
@@ -175,6 +309,8 @@ model User {
   leaderProfile         Leader?
   referredByLeader      Leader?                 @relation("LeaderReferrals", fields: [referredByLeaderId], references: [id])
   starterTasks          StarterTaskCompletion[]
+  areaAdminProfile      AreaAdmin?
+  coreHelperProfiles    CoreHelper[]
 
   @@index([phone])
   @@index([trustScore])
@@ -284,10 +420,11 @@ model Problem {
   closedAt  DateTime?
 
   // Relations
-  postedBy     User          @relation(fields: [postedById], references: [id])
-  feedbacks    Feedback[]
-  reports      Report[]
-  chatMessages ChatMessage[]
+  postedBy      User           @relation(fields: [postedById], references: [id])
+  feedbacks     Feedback[]
+  reports       Report[]
+  chatMessages  ChatMessage[]
+  shareablePost ShareablePost?
 
   @@index([type])
   @@index([status])
