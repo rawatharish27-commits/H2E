@@ -734,6 +734,13 @@ export function NearbyProblemsScreen() {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Copyright Footer */}
+      <footer className="fixed bottom-3 right-3 z-40">
+        <p className={`text-[10px] ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+          © Harish Rawat
+        </p>
+      </footer>
     </div>
   )
 }

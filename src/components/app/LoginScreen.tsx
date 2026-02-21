@@ -113,13 +113,8 @@ export function LoginScreen() {
         login(data.user)
         setUser(data.user)
         
-        // Check subscription status
-        if (data.user.paymentActive && data.user.activeTill && new Date(data.user.activeTill) > new Date()) {
-          const hasSeenDashboard = localStorage.getItem('hasSeenDashboard')
-          setScreen(hasSeenDashboard ? 'home' : 'dashboard')
-        } else {
-          setScreen('subscription')
-        }
+        // Always redirect to home after login
+        setScreen('home')
       } else {
         setError(data.error || 'Login failed. Please try again. / लॉगिन विफल।')
       }
@@ -192,9 +187,9 @@ export function LoginScreen() {
         login(data.user)
         setUser(data.user)
         
-        // Navigate to subscription
+        // Navigate to home directly
         setTimeout(() => {
-          setScreen('subscription')
+          setScreen('home')
         }, 1000)
       } else {
         if (data.error?.includes('already exists')) {
@@ -832,6 +827,13 @@ export function LoginScreen() {
           <span className="text-xs">Secure login with mobile number & password</span>
         </motion.div>
       </div>
+      
+      {/* Copyright Footer */}
+      <footer className="fixed bottom-3 right-3 z-40">
+        <p className={`text-[10px] ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+          © Harish Rawat
+        </p>
+      </footer>
     </div>
   )
 }

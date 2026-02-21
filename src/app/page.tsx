@@ -84,25 +84,15 @@ export default function Home() {
     
     try {
       if (isAuthenticated && user) {
-        // User is logged in
+        // User is logged in - always go to home
         if (user.darkMode !== undefined) {
           setDarkMode(user.darkMode)
         }
         
-        // Check subscription status
-        if (user.paymentActive && user.activeTill && new Date(user.activeTill) > new Date()) {
-          // Check if user has seen the dashboard onboarding
-          const hasSeenDashboard = localStorage.getItem('hasSeenDashboard')
-          if (!hasSeenDashboard) {
-            setScreen('dashboard')
-          } else {
-            setScreen('home')
-          }
-        } else {
-          setScreen('subscription')
-        }
+        // Always redirect to home after login
+        setScreen('home')
       } else {
-        // New user flow: Splash → Welcome → Referral → Login → Subscription → Home
+        // New user flow: Splash → Welcome → Referral → Login → Home
         const hasSeenWelcome = localStorage.getItem('hasSeenWelcome')
         
         // Always show welcome screen for new users (hasSeenWelcome not set)

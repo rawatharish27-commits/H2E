@@ -8,29 +8,57 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, 
-  CreditCard, 
   CheckCircle, 
-  Clock, 
   Shield,
   Copy,
   Loader2,
-  Users,
-  MapPin,
-  HandHeart,
-  Sparkles,
   QrCode,
-  Smartphone,
-  ExternalLink
+  Smartphone
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 
-// Payment apps configuration
+// Payment apps configuration with real brand colors and deep links
 const PAYMENT_APPS = [
-  { name: 'PhonePe', icon: '📱', color: 'bg-purple-500', deepLink: 'phonepe://pay' },
-  { name: 'Google Pay', icon: '🔷', color: 'bg-blue-500', deepLink: 'gpay://upi/pay' },
-  { name: 'Paytm', icon: '💙', color: 'bg-blue-400', deepLink: 'paytmmp://pay' },
-  { name: 'BHIM', icon: '🇮🇳', color: 'bg-green-500', deepLink: 'upi://pay' },
-  { name: 'Amazon Pay', icon: '🛒', color: 'bg-orange-500', deepLink: 'amazonpay://upi/pay' }
+  { 
+    name: 'PhonePe', 
+    color: '#5F259F', 
+    bgColor: 'bg-[#5F259F]',
+    deepLink: 'phonepe://pay',
+    upiLink: (upi: string, name: string, amount: number, note: string) => 
+      `phonepe://pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`
+  },
+  { 
+    name: 'Google Pay', 
+    color: '#4285F4', 
+    bgColor: 'bg-[#4285F4]',
+    deepLink: 'gpay://upi/pay',
+    upiLink: (upi: string, name: string, amount: number, note: string) => 
+      `gpay://upi/pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`
+  },
+  { 
+    name: 'Paytm', 
+    color: '#00BAF2', 
+    bgColor: 'bg-[#00BAF2]',
+    deepLink: 'paytmmp://pay',
+    upiLink: (upi: string, name: string, amount: number, note: string) => 
+      `paytmmp://pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`
+  },
+  { 
+    name: 'BHIM UPI', 
+    color: '#00875F', 
+    bgColor: 'bg-[#00875F]',
+    deepLink: 'upi://pay',
+    upiLink: (upi: string, name: string, amount: number, note: string) => 
+      `upi://pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`
+  },
+  { 
+    name: 'Amazon Pay', 
+    color: '#FF9900', 
+    bgColor: 'bg-[#FF9900]',
+    deepLink: 'amazonpay://upi/pay',
+    upiLink: (upi: string, name: string, amount: number, note: string) => 
+      `upi://pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`
+  }
 ]
 
 export function SubscriptionScreen() {
@@ -46,6 +74,7 @@ export function SubscriptionScreen() {
   const adminUpi = process.env.NEXT_PUBLIC_UPI_ID || 'rentforhelp@upi'
   const payeeName = process.env.NEXT_PUBLIC_UPI_PAYEE_NAME || 'Help2Earn'
   const amount = 49
+  const transactionNote = 'Help2Earn Subscription'
 
   const handleCopyUpi = () => {
     navigator.clipboard.writeText(adminUpi)
@@ -53,18 +82,28 @@ export function SubscriptionScreen() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Open UPI app with payment details
+  // Open specific payment app with UPI deep link
   const openPaymentApp = (app: typeof PAYMENT_APPS[0]) => {
-    // UPI deep link format
-    const upiLink = `upi://pay?pa=${adminUpi}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('Help2Earn Subscription')}`
+    const upiLink = app.upiLink(adminUpi, payeeName, amount, transactionNote)
     
-    // Try to open the app
+    // Try app-specific deep link first, then fallback to UPI protocol
+    const startTime = Date.now()
+    
+    // Open the UPI link
     window.location.href = upiLink
+    
+    // Fallback: If app doesn't open in 2 seconds, show instructions
+    setTimeout(() => {
+      if (Date.now() - startTime < 2500) {
+        // App didn't open, try generic UPI
+        window.location.href = `upi://pay?pa=${adminUpi}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`
+      }
+    }, 2000)
   }
 
   // Open any UPI app (system chooser)
   const openAnyUpiApp = () => {
-    const upiLink = `upi://pay?pa=${adminUpi}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('Help2Earn Subscription')}`
+    const upiLink = `upi://pay?pa=${adminUpi}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`
     window.location.href = upiLink
   }
 
@@ -136,6 +175,11 @@ export function SubscriptionScreen() {
             Theek hai, samajh gaya
           </Button>
         </motion.div>
+        
+        {/* Copyright */}
+        <p className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-400'} mt-8`}>
+          © Harish Rawat
+        </p>
       </div>
     )
   }
@@ -160,7 +204,7 @@ export function SubscriptionScreen() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-4">
+      <main className="flex-1 overflow-y-auto p-4 pb-20">
         {/* QR Code & Pay Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -173,7 +217,7 @@ export function SubscriptionScreen() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', delay: 0.2 }}
-                className="w-24 h-24 mx-auto mb-4 rounded-2xl bg-white flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                className="w-24 h-24 mx-auto mb-4 rounded-2xl bg-white flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-lg"
                 onClick={openAnyUpiApp}
               >
                 <QrCode className="w-12 h-12 text-orange-500" />
@@ -195,20 +239,28 @@ export function SubscriptionScreen() {
 
               {/* Payment Apps */}
               <div className="mb-4">
-                <p className={`text-xs font-medium mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Or choose your app:</p>
-                <div className="grid grid-cols-5 gap-2">
+                <p className={`text-xs font-medium mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Or choose your app:</p>
+                <div className="grid grid-cols-5 gap-3">
                   {PAYMENT_APPS.map((app) => (
                     <motion.button
                       key={app.name}
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.08 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => openPaymentApp(app)}
-                      className={`flex flex-col items-center p-2 rounded-xl ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} transition-colors`}
+                      className={`flex flex-col items-center p-3 rounded-2xl ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} transition-all shadow-sm hover:shadow-md`}
                     >
-                      <div className={`w-10 h-10 rounded-xl ${app.color} flex items-center justify-center text-lg mb-1`}>
-                        {app.icon}
+                      <div 
+                        className="w-12 h-12 rounded-xl flex items-center justify-center mb-2 shadow-md"
+                        style={{ backgroundColor: app.color }}
+                      >
+                        {/* App name first letter as icon */}
+                        <span className="text-white font-bold text-lg">
+                          {app.name.charAt(0)}
+                        </span>
                       </div>
-                      <span className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{app.name}</span>
+                      <span className={`text-[10px] font-medium leading-tight text-center ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {app.name.split(' ')[0]}
+                      </span>
                     </motion.button>
                   ))}
                 </div>
@@ -300,6 +352,13 @@ export function SubscriptionScreen() {
           <span>Secure UPI payment • 2-4 hours verification</span>
         </motion.div>
       </main>
+      
+      {/* Copyright Footer */}
+      <footer className={`sticky bottom-0 py-3 px-4 text-right ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} border-t`}>
+        <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          © Harish Rawat
+        </p>
+      </footer>
     </div>
   )
 }
