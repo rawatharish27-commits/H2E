@@ -308,7 +308,7 @@ model User {
   adminRoles            AdminAssignment[]
   whatsappNotifications WhatsAppNotification[]
   leaderProfile         Leader?
-  referredByLeader      Leader?                 @relation("LeaderReferrals", fields: [referredByLeaderId], references: [id])
+  referredByLeader      Leader?                 @relation("LeaderReferrals", fields: [referredByLeaderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   starterTasks          StarterTaskCompletion[]
   areaAdminProfile      AreaAdmin?
   coreHelperProfiles    CoreHelper[]
@@ -752,7 +752,7 @@ model Leader {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   leaderReferrals User[]             @relation("LeaderReferrals")
   commissions     LeaderCommission[]
   area            Area?              @relation(fields: [areaId], references: [id])
