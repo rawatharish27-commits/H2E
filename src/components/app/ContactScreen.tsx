@@ -308,6 +308,13 @@ export function ContactScreen({ onBack }: ContactScreenProps) {
           </div>
         </motion.div>
       </main>
+      
+      {/* Copyright Footer */}
+      <footer className="pb-4 text-center">
+        <p className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+          © Harish Rawat
+        </p>
+      </footer>
     </div>
   )
 }

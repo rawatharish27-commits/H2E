@@ -282,6 +282,13 @@ export function TermsScreen({ onBack, onAccept, showAccept = false }: TermsScree
           </motion.div>
         )}
       </motion.div>
+      
+      {/* Copyright Footer */}
+      <footer className="pb-4 text-center">
+        <p className="text-xs text-muted-foreground">
+          © Harish Rawat
+        </p>
+      </footer>
     </div>
   )
 }

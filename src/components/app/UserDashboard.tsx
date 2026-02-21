@@ -838,6 +838,9 @@ export function UserDashboard() {
           <CheckCircle className="w-5 h-5 mr-2" />
           Go to Home / होम पर जाएं
         </Button>
+        <p className={`text-center text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          © Harish Rawat
+        </p>
       </footer>
     </div>
   )

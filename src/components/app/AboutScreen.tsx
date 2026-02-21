@@ -234,7 +234,7 @@ export function AboutScreen({ onBack }: AboutScreenProps) {
           transition={{ delay: 1 }}
           className={`text-center ${darkMode ? 'text-gray-500' : 'text-gray-400'} text-xs mt-8`}
         >
-          Version 1.0.0 • © 2024 Help2Earn
+          Version 1.0.0 • © Harish Rawat
         </motion.p>
       </main>
     </div>
