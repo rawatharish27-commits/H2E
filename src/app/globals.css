@@ -160,26 +160,22 @@ body, .bg-background, .text-foreground, .bg-card, .text-card-foreground {
 
 /* ==================== ALL SCREEN CONTAINERS - ENABLE SCROLL ==================== */
 
-/* All min-h-screen containers should scroll */
+/* All min-h-screen containers should NOT block scroll - let body handle it */
 .min-h-screen {
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  /* Don't add overflow here - let body handle scrolling */
 }
 
 /* Fix h-screen (full height) - should not block scroll */
 .h-screen {
   height: 100vh;
   height: -webkit-fill-available;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  /* Don't add overflow here - let body handle scrolling */
 }
 
-/* Flex containers - allow scroll */
-.flex-col {
+/* Flex containers - only add scroll if they have explicit height */
+.flex-col:not(.min-h-screen):not(.h-screen) {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -204,12 +200,6 @@ body, .bg-background, .text-foreground, .bg-card, .text-card-foreground {
   .h-screen {
     height: -webkit-fill-available;
   }
-  
-  /* Fix for modals and overlays on iOS */
-  .fixed {
-    position: -webkit-sticky;
-    position: sticky;
-  }
 }
 
 /* ==================== TOUCH & SCROLL OPTIMIZATIONS ==================== */
@@ -221,19 +211,13 @@ body, .bg-background, .text-foreground, .bg-card, .text-card-foreground {
   overscroll-behavior-y: contain;
 }
 
-/* Remove overflow-hidden on mobile but keep for specific cases */
+/* Mobile optimizations */
 @media (max-width: 768px) {
-  body > div:first-child,
-  body > div:first-child > div {
+  /* Ensure html and body allow scroll */
+  html, body {
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
-  }
-  
-  /* Fix for modal overlays - allow background scroll lock */
-  .overflow-hidden:not(.modal-open):not([data-radix-collection-item]) {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
   }
 }
 
