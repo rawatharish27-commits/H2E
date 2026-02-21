@@ -499,9 +499,9 @@ export function WelcomeScreen() {
             </motion.div>
             <div>
               <span className={`font-bold text-base`}>
-                <span className="text-blue-600">Help</span>
-                <span className="text-green-600">2</span>
-                <span className="text-purple-600">Earn</span>
+                <span className="text-purple-600">Community</span>
+                <span className="text-pink-500"> Help </span>
+                <span className="text-rose-600">Network</span>
               </span>
               <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>लोगों को जोड़ना</p>
             </div>
