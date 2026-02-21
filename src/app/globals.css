@@ -123,47 +123,70 @@
   }
 }
 
-/* ==================== MOBILE SCROLL FIXES ==================== */
+/* ==================== COMPREHENSIVE MOBILE SCROLL FIX ==================== */
 
-/* Mobile-first styles */
+/* Root HTML - enable scroll */
 html {
   font-size: 16px;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
-  /* Enable smooth scrolling */
   scroll-behavior: smooth;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Smooth dark mode transitions */
-html.dark,
-html.light {
+/* Dark mode transitions */
+html.dark, html.light {
   color-scheme: light dark;
 }
 
-body,
-.bg-background,
-.text-foreground,
-.bg-card,
-.text-card-foreground {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* ==================== CRITICAL MOBILE SCROLL FIX ==================== */
-
-/* Allow body to scroll naturally */
-html, body {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
+/* Body - allow natural scroll */
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
   touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  position: relative;
 }
 
-/* iOS specific fixes */
+/* Smooth transitions */
+body, .bg-background, .text-foreground, .bg-card, .text-card-foreground {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ==================== ALL SCREEN CONTAINERS - ENABLE SCROLL ==================== */
+
+/* All min-h-screen containers should scroll */
+.min-h-screen {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix h-screen (full height) - should not block scroll */
+.h-screen {
+  height: 100vh;
+  height: -webkit-fill-available;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Flex containers - allow scroll */
+.flex-col {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==================== iOS SPECIFIC FIXES ==================== */
+
 @supports (-webkit-touch-callout: none) {
   html {
     height: -webkit-fill-available;
@@ -171,25 +194,51 @@ html, body {
   
   body {
     min-height: -webkit-fill-available;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    position: relative;
   }
   
   .min-h-screen {
     min-height: -webkit-fill-available;
   }
+  
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+  
+  /* Fix for modals and overlays on iOS */
+  .fixed {
+    position: -webkit-sticky;
+    position: sticky;
+  }
 }
 
-/* Allow scrolling within content areas */
-.overflow-y-auto,
-.overflow-auto,
-[class*="overflow-y"] {
-  overscroll-behavior-y: contain;
+/* ==================== TOUCH & SCROLL OPTIMIZATIONS ==================== */
+
+/* Smooth scrolling for all scrollable elements */
+[style*="overflow"], .overflow-auto, .overflow-y-auto, .overflow-scroll {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+  overscroll-behavior-y: contain;
 }
 
-/* Custom scrollbar */
+/* Remove overflow-hidden on mobile but keep for specific cases */
+@media (max-width: 768px) {
+  body > div:first-child,
+  body > div:first-child > div {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Fix for modal overlays - allow background scroll lock */
+  .overflow-hidden:not(.modal-open):not([data-radix-collection-item]) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ==================== CUSTOM SCROLLBAR ==================== */
+
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -220,36 +269,42 @@ html, body {
 @media (max-width: 640px) {
   ::-webkit-scrollbar {
     display: none;
+    width: 0;
+    height: 0;
   }
+  
   * {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
   }
 }
 
+/* ==================== TOUCH & INTERACTION ==================== */
+
 /* Safe area padding for iOS */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+  
+  .bottom-nav-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
 }
 
-/* Touch-friendly buttons */
-button, 
-[role="button"],
-a {
+/* Touch-friendly buttons - but don't block scroll */
+button, [role="button"], a, input, select, textarea {
   touch-action: manipulation;
 }
 
-/* Prevent text selection on interactive elements */
-button, 
-[role="button"],
-.no-select {
+/* Prevent accidental text selection */
+button, [role="button"], .no-select {
   -webkit-user-select: none;
   user-select: none;
 }
 
-/* Animation utilities */
+/* ==================== ANIMATIONS ==================== */
+
 .animate-in {
   animation: fadeIn 0.2s ease-out;
 }
@@ -263,6 +318,22 @@ button,
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Reduce animations for performance */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* GPU acceleration for smooth animations */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 /* Gradient text */
@@ -289,36 +360,22 @@ button,
 
 /* Loading shimmer */
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    oklch(0.95 0 0) 0%,
-    oklch(0.9 0 0) 50%,
-    oklch(0.95 0 0) 100%
-  );
+  background: linear-gradient(90deg, oklch(0.95 0 0) 0%, oklch(0.9 0 0) 50%, oklch(0.95 0 0) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 .dark .shimmer {
-  background: linear-gradient(
-    90deg,
-    oklch(0.2 0 0) 0%,
-    oklch(0.25 0 0) 50%,
-    oklch(0.2 0 0) 100%
-  );
+  background: linear-gradient(90deg, oklch(0.2 0 0) 0%, oklch(0.25 0 0) 50%, oklch(0.2 0 0) 100%);
   background-size: 200% 100%;
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* Focus ring for accessibility */
+/* Focus ring */
 :focus-visible {
   outline: 2px solid oklch(0.55 0.2 25);
   outline-offset: 2px;
@@ -340,136 +397,79 @@ button,
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-/* Bottom navigation safe area */
-.bottom-nav-safe {
-  padding-bottom: max(env(safe-area-inset-bottom), 16px);
-}
+/* ==================== SPLASH ANIMATIONS ==================== */
 
-/* Splash screen animations - SSR safe (no hydration mismatch) */
 @keyframes logoEnter {
-  0% {
-    transform: scale(0) rotate(-180deg);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 @keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
-.animate-logo-enter {
-  animation: logoEnter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-
-.animate-fade-in-delay-1 {
-  opacity: 0;
-  animation: fadeIn 0.5s ease-out 0.5s forwards;
-}
-
-.animate-fade-in-delay-2 {
-  opacity: 0;
-  animation: fadeIn 0.5s ease-out 0.6s forwards;
-}
-
-.animate-fade-in-delay-3 {
-  opacity: 0;
-  animation: fadeIn 0.5s ease-out 0.8s forwards;
-}
-
-/* 3D Logo bounce animation - SSR safe */
 @keyframes bounceIn {
-  0% {
-    transform: scale(0.3);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  70% {
-    transform: scale(0.9);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-.animate-bounce-in {
-  animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-}
+.animate-logo-enter { animation: logoEnter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+.animate-fade-in-delay-1 { opacity: 0; animation: fadeIn 0.5s ease-out 0.5s forwards; }
+.animate-fade-in-delay-2 { opacity: 0; animation: fadeIn 0.5s ease-out 0.6s forwards; }
+.animate-fade-in-delay-3 { opacity: 0; animation: fadeIn 0.5s ease-out 0.8s forwards; }
+.animate-bounce-in { animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
 
 /* 3D Logo effects */
 .logo-3d {
   background: linear-gradient(145deg, #ffffff, #f0f0f0);
-  box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.3),
-    0 0 0 4px rgba(255, 255, 255, 0.9),
-    inset 0 -5px 20px rgba(0, 0, 0, 0.1),
-    inset 0 5px 10px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.9), inset 0 -5px 20px rgba(0, 0, 0, 0.1), inset 0 5px 10px rgba(255, 255, 255, 0.8);
 }
 
 .dark .logo-3d {
   background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-  box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.5),
-    0 0 0 4px rgba(100, 100, 100, 0.3),
-    inset 0 -5px 20px rgba(0, 0, 0, 0.3),
-    inset 0 5px 10px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(100, 100, 100, 0.3), inset 0 -5px 20px rgba(0, 0, 0, 0.3), inset 0 5px 10px rgba(255, 255, 255, 0.1);
 }
 
-/* ==================== MOBILE PERFORMANCE ==================== */
+/* ==================== MOBILE STICKY ELEMENTS ==================== */
 
-/* Reduce animations on low-end devices */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* GPU acceleration for smooth scrolling */
-.transform-gpu {
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* Fix for position fixed elements on mobile */
 @media (max-width: 640px) {
   .sticky {
     position: -webkit-sticky;
     position: sticky;
+    top: 0;
+    z-index: 50;
   }
+  
+  /* Fix position fixed on mobile */
+  .fixed.bottom-0, .fixed.top-0 {
+    position: fixed;
+    left: 0;
+    right: 0;
+  }
+}
+
+/* ==================== PREVENT BODY LOCK ==================== */
+
+/* Ensure body never gets locked */
+body:not(.modal-open) {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+}
+
+/* Allow scroll when modal is closed */
+body.modal-closing {
+  overflow-y: auto !important;
 }

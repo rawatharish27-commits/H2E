@@ -120,6 +120,11 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Help2Earn" />
         
+        {/* Mobile Optimization */}
+        <meta name="HandheldFriendly" content="true" />
+        <meta name="MobileOptimized" content="width" />
+        <meta name="format-detection" content="telephone=yes" />
+        
         {/* Microsoft Tiles */}
         <meta name="msapplication-TileColor" content="#f97316" />
         <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
@@ -159,6 +164,12 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        style={{ 
+          overflowY: 'auto', 
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain'
+        }}
       >
         {children}
         <Toaster />
