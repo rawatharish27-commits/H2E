@@ -53,8 +53,10 @@ export function PostProblemScreen() {
   const [selectedAddress, setSelectedAddress] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const canPost = canPostProblem()
-  const isActive = isSubscriptionActive()
+  const canPost = true
+  const isActive = true
+  //const canPost = canPostProblem()
+  //const isActive = isSubscriptionActive()
   
   // Show payment required message state
   const [showPaymentRequired, setShowPaymentRequired] = useState(false)
