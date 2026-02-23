@@ -55,8 +55,10 @@ export function NearbyProblemsScreen() {
   const [registeringId, setRegisteringId] = useState<string | null>(null)
   const [helperStatuses, setHelperStatuses] = useState<Record<string, HelperStatus>>({})
 
-  const canView = canViewProblems()
-  const isActive = isSubscriptionActive()
+  const canView = true
+  const isActive = true
+  //const canView = canViewProblems()
+  //const isActive = isSubscriptionActive()
   const myTrustScore = trustScore || user?.trustScore || 50
 
   const fetchProblems = async () => {
