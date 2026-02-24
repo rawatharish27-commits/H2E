@@ -100,7 +100,7 @@ export function ReferralScreen({ isMandatory = true }: ReferralScreenProps) {
             <HandHeart className="w-7 h-7 text-orange-500" />
           </motion.div>
           <div>
-            <h1 className={`text-2xl font-bold ${isMandatory ? 'text-white' : 'text-gray-900'}`}>Help2Earn</h1>
+            <h1 className={`text-2xl font-bold ${isMandatory ? 'text-white' : 'text-gray-900'}`}>Community Help Network</h1>
             <p className={`text-sm ${isMandatory ? 'text-white/80' : 'text-gray-500'}`}>Connecting People / लोगों को जोड़ना</p>
           </div>
         </div>
@@ -218,7 +218,7 @@ export function ReferralScreen({ isMandatory = true }: ReferralScreenProps) {
                       Why referral is required?
                     </p>
                     <p className="text-xs text-gray-500">
-                      Help2Earn is a community-based platform. Referral ensures trusted members in our network.
+                      Community Help Network is a community-based platform. Referral ensures trusted members in our network.
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       रेफरल से हमारे नेटवर्क में विश्वसनीय सदस्य सुनिश्चित होते हैं।
@@ -266,10 +266,10 @@ export function ReferralScreen({ isMandatory = true }: ReferralScreenProps) {
               Don't have a referral code?
             </p>
             <p className="text-xs">
-              Ask any Help2Earn user or contact support
+              Ask any Community Help Network user or contact support
             </p>
             <p className="text-xs mt-1">
-              कोई भी Help2Earn यूज़र से पूछें या सपोर्ट से संपर्क करें
+              कोई भी Community Help Network यूज़र से पूछें या सपोर्ट से संपर्क करें
             </p>
           </motion.div>
         )}

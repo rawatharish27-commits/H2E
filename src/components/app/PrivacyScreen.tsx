@@ -36,7 +36,7 @@ export function PrivacyScreen() {
               <Lock className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Help2Earn Privacy Policy</h2>
+              <h2 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Community Help Network Privacy Policy</h2>
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Last Updated: January 2025</p>
             </div>
           </div>
@@ -204,7 +204,7 @@ export function PrivacyScreen() {
             </p>
             <div className={`mt-3 p-4 rounded-lg ${darkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
               <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>Grievance Officer</p>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Email: grievance@help2earn.app</p>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Email: grievance@communityhelpnetwork.app</p>
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Response Time: Within 48 hours</p>
             </div>
           </div>

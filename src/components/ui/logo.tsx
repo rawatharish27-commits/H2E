@@ -26,7 +26,7 @@ export function Logo({ size = 'md', showText = true, className = '' }: LogoProps
       >
         <Image
           src="/images/logo.png"
-          alt="Help2Earn Logo"
+          alt="Community Help Network Logo"
           fill
           className="object-cover"
           priority
@@ -35,9 +35,9 @@ export function Logo({ size = 'md', showText = true, className = '' }: LogoProps
       {showText && (
         <div className="flex flex-col">
           <span className={`font-bold ${text}`}>
-            <span className="text-blue-600">Help</span>
-            <span className="text-green-600">2</span>
-            <span className="text-orange-600">Earn</span>
+            <span className="text-blue-600">Community</span>
+            <span className="text-green-600"> Help </span>
+            <span className="text-orange-600">Network</span>
           </span>
         </div>
       )}
@@ -65,7 +65,7 @@ export function LogoLarge({ tagline = 'Connecting People', taglineHi = 'लो�
         {/* Logo Image */}
         <Image
           src="/images/logo.png"
-          alt="Help2Earn Logo"
+          alt="Community Help Network Logo"
           fill
           className="object-cover"
           priority
@@ -77,9 +77,9 @@ export function LogoLarge({ tagline = 'Connecting People', taglineHi = 'लो�
       
       {/* Brand Name */}
       <h1 className="text-4xl font-bold mb-2 drop-shadow-lg">
-        <span className="text-blue-600 drop-shadow-[0_2px_4px_rgba(37,99,235,0.3)]">Help</span>
-        <span className="text-green-600 drop-shadow-[0_2px_4px_rgba(22,163,74,0.3)]">2</span>
-        <span className="text-orange-600 drop-shadow-[0_2px_4px_rgba(234,88,12,0.3)]">Earn</span>
+        <span className="text-blue-600 drop-shadow-[0_2px_4px_rgba(37,99,235,0.3)]">Community</span>
+        <span className="text-green-600 drop-shadow-[0_2px_4px_rgba(22,163,74,0.3)]"> Help </span>
+        <span className="text-orange-600 drop-shadow-[0_2px_4px_rgba(234,88,12,0.3)]">Network</span>
       </h1>
       
       {/* Taglines */}
@@ -108,7 +108,7 @@ export function LogoIcon({ size = 32, className = '' }: { size?: number; classNa
     >
       <Image
         src="/images/logo.png"
-        alt="Help2Earn"
+        alt="Community Help Network"
         fill
         className="object-cover"
         priority

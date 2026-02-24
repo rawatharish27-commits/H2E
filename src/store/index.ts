@@ -15,8 +15,38 @@ export interface SOSAlert {
   resolvedAt?: Date
 }
 
-// Module-level variable for location tracking
+// Location Address type
+export interface LocationAddress {
+  village: string
+  city: string
+  state: string
+  pincode: string
+  country: string
+  displayName: string
+}
+
+// App visibility state for tracking when app is in foreground
+let isAppVisible = true
 let locationWatchId: number | null = null
+
+// Setup visibility change listener (only on client)
+if (typeof window !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    isAppVisible = !document.hidden
+    // Stop location tracking when app goes to background
+    if (document.hidden && locationWatchId !== null) {
+      navigator.geolocation.clearWatch(locationWatchId)
+      locationWatchId = null
+    }
+  })
+
+  // Also listen for page unload
+  window.addEventListener('beforeunload', () => {
+    if (locationWatchId !== null) {
+      navigator.geolocation.clearWatch(locationWatchId)
+    }
+  })
+}
 
 interface AppState {
   // Auth
@@ -33,6 +63,7 @@ interface AppState {
   // Location
   location: Location | null
   locationError: string | null
+  locationAddress: LocationAddress | null // Address details from reverse geocoding
   
   // Problems
   nearbyProblems: Problem[]
@@ -67,6 +98,7 @@ interface AppActions {
   // Auth
   setUser: (user: User | null) => void
   setToken: (token: string | null) => void
+  login: (user: User, token?: string) => void
   setLoginPhone: (phone: string | null) => void
   setLoginName: (name: string | null) => void
   logout: () => void
@@ -78,7 +110,9 @@ interface AppActions {
   // Location
   setLocation: (location: Location | null) => void
   setLocationError: (error: string | null) => void
-  requestLocation: () => Promise<void>
+  setLocationAddress: (address: LocationAddress | null) => void
+  requestLocation: () => Promise<Location | null>
+  fetchLocationAddress: (lat: number, lng: number) => Promise<LocationAddress | null>
   startLocationTracking: () => void
   stopLocationTracking: () => void
   
@@ -133,6 +167,7 @@ const initialState: AppState = {
   previousScreen: null,
   location: null,
   locationError: null,
+  locationAddress: null,
   nearbyProblems: [],
   myProblems: [],
   selectedProblem: null,
@@ -158,6 +193,13 @@ export const useAppStore = create<AppState & AppActions>()(
       // Auth
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       setToken: (token) => set({ token }),
+      login: (user, token) => set({ 
+        user, 
+        token: token || null,
+        isAuthenticated: true,
+        loginPhone: null,
+        loginName: null
+      }),
       setLoginPhone: (phone) => set({ loginPhone: phone }),
       setLoginName: (name) => set({ loginName: name }),
       logout: () => set({ 
@@ -167,7 +209,9 @@ export const useAppStore = create<AppState & AppActions>()(
         user: null,
         loginPhone: null,
         loginName: null,
-        isAuthenticated: false 
+        isAuthenticated: false,
+        location: null,
+        locationAddress: null
       }),
 
       // Navigation
@@ -183,11 +227,13 @@ export const useAppStore = create<AppState & AppActions>()(
       // Location
       setLocation: (location) => set({ location, locationError: null }),
       setLocationError: (error) => set({ locationError: error }),
+      setLocationAddress: (address) => set({ locationAddress: address }),
       
+      // Request location - only when user is actively using app
       requestLocation: async () => {
         if (typeof window === 'undefined' || !navigator.geolocation) {
           set({ locationError: 'Location not supported / स्थान समर्थित नहीं है' })
-          return
+          return null
         }
 
         try {
@@ -195,20 +241,24 @@ export const useAppStore = create<AppState & AppActions>()(
             navigator.geolocation.getCurrentPosition(resolve, reject, {
               enableHighAccuracy: true,
               timeout: 15000,
-              maximumAge: 0,
+              maximumAge: 60000, // Cache for 1 minute
             })
           })
 
+          const newLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          }
+
           set({
-            location: {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            },
+            location: newLocation,
             locationError: null,
           })
           
-          // Start continuous tracking after successful initial location
-          get().startLocationTracking()
+          // Fetch address details
+          get().fetchLocationAddress(newLocation.lat, newLocation.lng)
+          
+          return newLocation
         } catch (error: unknown) {
           const geoError = error as GeolocationPositionError
           let errorMsg = 'Please enable location access / कृपया स्थान एक्सेस सक्षम करें'
@@ -222,42 +272,64 @@ export const useAppStore = create<AppState & AppActions>()(
           }
           
           set({ locationError: errorMsg })
+          return null
         }
       },
       
+      // Fetch address from coordinates using reverse geocoding
+      fetchLocationAddress: async (lat: number, lng: number) => {
+        try {
+          const res = await fetch(`/api/location/reverse?lat=${lat}&lng=${lng}`)
+          const data = await res.json()
+          
+          if (data.success && data.location) {
+            set({ locationAddress: data.location })
+            return data.location
+          }
+        } catch (error) {
+          console.error('Failed to fetch location address:', error)
+        }
+        return null
+      },
+
+      // Start continuous location tracking (only when app is visible)
       startLocationTracking: () => {
         if (typeof window === 'undefined' || !navigator.geolocation) return
         
-        // Stop any existing watch
+        // Don't start if app is not visible
+        if (!isAppVisible) return
+
+        // Clear any existing watch
         if (locationWatchId !== null) {
           navigator.geolocation.clearWatch(locationWatchId)
         }
-        
-        // Start watching position for real-time updates
+
         locationWatchId = navigator.geolocation.watchPosition(
           (position) => {
-            set({
-              location: {
+            // Only update if app is visible
+            if (isAppVisible) {
+              const newLocation = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
-              },
-              locationError: null,
-            })
+              }
+              set({ location: newLocation, locationError: null })
+              get().fetchLocationAddress(newLocation.lat, newLocation.lng)
+            }
           },
           (error) => {
-            console.error('Location watch error:', error)
-            // Don't show error for watch failures, keep last known location
+            console.error('Location tracking error:', error)
           },
           {
-            enableHighAccuracy: true,
+            enableHighAccuracy: false,
             timeout: 30000,
-            maximumAge: 10000, // Accept locations up to 10 seconds old
+            maximumAge: 60000,
           }
         )
       },
-      
+
+      // Stop location tracking
       stopLocationTracking: () => {
-        if (locationWatchId !== null && typeof navigator !== 'undefined') {
+        if (locationWatchId !== null) {
           navigator.geolocation.clearWatch(locationWatchId)
           locationWatchId = null
         }
@@ -371,6 +443,15 @@ export const useAppStore = create<AppState & AppActions>()(
       isSubscriptionActive: () => {
         const { user } = get()
         if (!user) return false
+        
+        // FREE ACCESS until April 1, 2026
+        const freeAccessEndDate = new Date('2026-04-01T00:00:00')
+        const now = new Date()
+        if (now < freeAccessEndDate) {
+          return true // Free access for all users
+        }
+        
+        // After April 1, 2026 - check payment status
         if (!user.paymentActive) return false
         if (user.activeTill && new Date(user.activeTill) < new Date()) return false
         return true
@@ -379,6 +460,18 @@ export const useAppStore = create<AppState & AppActions>()(
       canPostProblem: () => {
         const { user } = get()
         if (!user) return false
+        
+        // FREE ACCESS until April 1, 2026
+        const freeAccessEndDate = new Date('2026-04-01T00:00:00')
+        const now = new Date()
+        if (now < freeAccessEndDate) {
+          // Free access - only check basic conditions
+          if (user.isBlocked || user.isBanned) return false
+          if (user.trustScore < 30) return false
+          return true
+        }
+        
+        // After April 1, 2026 - check payment
         if (!get().isSubscriptionActive()) return false
         if (user.isBlocked || user.isBanned) return false
         if (user.trustScore < 30) return false
@@ -388,6 +481,17 @@ export const useAppStore = create<AppState & AppActions>()(
       canViewProblems: () => {
         const { user } = get()
         if (!user) return false
+        
+        // FREE ACCESS until April 1, 2026
+        const freeAccessEndDate = new Date('2026-04-01T00:00:00')
+        const now = new Date()
+        if (now < freeAccessEndDate) {
+          // Free access - only check basic conditions
+          if (user.isBlocked || user.isBanned) return false
+          return true
+        }
+        
+        // After April 1, 2026 - check payment
         if (!get().isSubscriptionActive()) return false
         if (user.isBlocked || user.isBanned) return false
         return true
@@ -410,6 +514,8 @@ export const useAppStore = create<AppState & AppActions>()(
         usedReferralCode: state.usedReferralCode,
         loginPhone: state.loginPhone,
         loginName: state.loginName,
+        location: state.location,
+        locationAddress: state.locationAddress,
       }),
     }
   )

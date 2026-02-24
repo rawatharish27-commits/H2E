@@ -53,8 +53,13 @@ export function PostProblemScreen() {
   const [selectedAddress, setSelectedAddress] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const canPost = canPostProblem()
-  const isActive = isSubscriptionActive()
+  const canPost = true
+  const isActive = true
+  //const canPost = canPostProblem()
+  //const isActive = isSubscriptionActive()
+  
+  // Show payment required message state
+  const [showPaymentRequired, setShowPaymentRequired] = useState(false)
 
   const typeOptions = [
     { 
@@ -138,6 +143,19 @@ export function PostProblemScreen() {
 
   const handleSubmit = async () => {
     setError('')
+    
+    // Check if subscription is active first
+    if (!isActive) {
+      // Redirect to payment screen instead of showing error
+      setScreen('subscription')
+      return
+    }
+    
+    // Check if user can post (blocked, banned, or low trust)
+    if (!canPost) {
+      setError('Your account is restricted. Please contact support. / आपका खाता प्रतिबंधित है।')
+      return
+    }
     
     if (!user || !type || !title || !selectedLocation) {
       setError('Please fill all required fields / कृपया सभी जानकारी भरें')
@@ -234,65 +252,6 @@ export function PostProblemScreen() {
     )
   }
 
-  if (!isActive) {
-    return (
-      <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <header className={`sticky top-0 z-50 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
-          <div className="px-4 py-3 flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setScreen('home')}>
-              <ArrowLeft className={`w-5 h-5 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
-            </Button>
-            <h1 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Post Request</h1>
-          </div>
-        </header>
-        
-        <main className="flex-1 flex flex-col items-center justify-center p-6">
-          <div className={`w-20 h-20 rounded-3xl ${darkMode ? 'bg-orange-900/30' : 'bg-orange-100'} flex items-center justify-center mb-4`}>
-            <AlertCircle className="w-10 h-10 text-orange-500" />
-          </div>
-          <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>Subscription Required</h2>
-          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-center mb-4`}>
-            Activate your subscription to post requests
-          </p>
-          <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'} mb-4`}>
-            अनुरोध पोस्ट करने के लिए सदस्यता लें
-          </p>
-          <Button
-            onClick={() => setScreen('subscription')}
-            className="bg-gradient-to-r from-orange-500 to-red-500 text-white h-12 rounded-xl font-bold px-6"
-          >
-            Activate Now - ₹49/month
-          </Button>
-        </main>
-      </div>
-    )
-  }
-
-  if (!canPost) {
-    return (
-      <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <header className={`sticky top-0 z-50 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
-          <div className="px-4 py-3 flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setScreen('home')}>
-              <ArrowLeft className={`w-5 h-5 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
-            </Button>
-            <h1 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Post Request</h1>
-          </div>
-        </header>
-        
-        <main className="flex-1 flex flex-col items-center justify-center p-6">
-          <div className={`w-20 h-20 rounded-3xl ${darkMode ? 'bg-red-900/30' : 'bg-red-100'} flex items-center justify-center mb-4`}>
-            <Shield className="w-10 h-10 text-red-500" />
-          </div>
-          <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>Account Restricted</h2>
-          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-center`}>
-            Your account is currently restricted. Please contact support.
-          </p>
-        </main>
-      </div>
-    )
-  }
-
   return (
     <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
@@ -321,6 +280,27 @@ export function PostProblemScreen() {
           />
         </div>
       </header>
+
+      {/* Subscription Notice for Non-Active Users */}
+      {!isActive && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`mx-4 mt-3 p-3 rounded-xl ${darkMode ? 'bg-orange-900/30 border-orange-800' : 'bg-orange-50 border-orange-200'} border`}
+        >
+          <div className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-orange-500" />
+            <div>
+              <p className={`text-sm font-medium ${darkMode ? 'text-orange-400' : 'text-orange-700'}`}>
+                Subscription Required to Post
+              </p>
+              <p className={`text-xs ${darkMode ? 'text-orange-300' : 'text-orange-600'}`}>
+                Complete form & submit to activate • ₹49/month
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       <main className="flex-1 overflow-y-auto p-4">
         {/* Step 1: Type Selection */}
@@ -681,23 +661,39 @@ export function PostProblemScreen() {
             <Button
               onClick={handleSubmit}
               disabled={isLoading || !selectedLocation}
-              className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-lg rounded-2xl"
+              className={`w-full h-14 text-white font-bold text-lg rounded-2xl ${isActive ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`}
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  Submitting...
+                  {isActive ? 'Submitting...' : 'Redirecting...'}
                 </>
               ) : (
                 <>
-                  <Zap className="w-5 h-5 mr-2" />
-                  Submit Request / अनुरोध भेजें
+                  {isActive ? (
+                    <>
+                      <Zap className="w-5 h-5 mr-2" />
+                      Submit Request / अनुरोध भेजें
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5 mr-2" />
+                      Activate & Post / ₹49
+                    </>
+                  )}
                 </>
               )}
             </Button>
           </motion.div>
         )}
       </main>
+      
+      {/* Copyright Footer */}
+      <footer className="fixed bottom-3 right-3 z-40">
+        <p className={`text-[10px] ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+          © Harish Rawat
+        </p>
+      </footer>
     </div>
   )
 }

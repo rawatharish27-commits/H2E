@@ -102,10 +102,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       tempCode,
-      shareMessage: `Help2Earn ek app hai jahan madad karke kamaai hoti hai.
+      shareMessage: `Community Help Network ek app hai jahan madad karke kamaai hoti hai.
 Apne area ke log jud rahe hain.
 Join karo - Code: ${tempCode}
-Download: https://help2earn.app`
+Download: https://communityhelpnetwork.app`
     })
   } catch (error) {
     console.error('Generate temp referral error:', error)

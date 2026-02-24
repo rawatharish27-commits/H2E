@@ -16,7 +16,8 @@ import {
   Check,
   ArrowRight,
   HandHeart,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 
@@ -28,14 +29,14 @@ export function PreLoginShareScreen() {
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
   
-  const shareMessage = `🤝 Help2Earn - Madad karke kamaayein!
+  const shareMessage = `🤝 Community Help Network - Madad karke kamaayein!
 मदद करके कमाई करो!
 
 📍 20 KM में मददगार खोजो
 💰 ₹100-₹500 per help कमाओ
 📞 डायरेक्ट फोन पे बात करो
 
-🔗 Download: https://help2earn.app
+🔗 Download: https://communityhelpnetwork.app
 📝 My Referral Code: ${tempReferralCode}
 
 मदद करो, कमाई करो! 💰`
@@ -66,6 +67,9 @@ export function PreLoginShareScreen() {
   }
   
   const handleContinue = async () => {
+    // Mark that user has completed welcome flow
+    localStorage.setItem('hasSeenWelcome', 'true')
+    
     // If user has a referral code, verify it first
     if (referralInput.trim()) {
       setIsVerifying(true)
@@ -104,6 +108,14 @@ export function PreLoginShareScreen() {
       {/* Header */}
       <header className="pt-6 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setScreen('welcome')}
+            className={`rounded-xl ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-orange-100'}`}
+          >
+            <ArrowLeft className={`w-5 h-5 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
+          </Button>
           <motion.div 
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -113,7 +125,7 @@ export function PreLoginShareScreen() {
             <HandHeart className="w-6 h-6 text-white" />
           </motion.div>
           <div>
-            <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Help2Earn</span>
+            <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Community Help Network</span>
             <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Share & Earn / शेयर करो और कमाओ</p>
           </div>
         </div>
@@ -307,11 +319,11 @@ export function PreLoginShareScreen() {
       <div className="px-6 pb-6">
         <Button
           onClick={handleContinue}
-          disabled={isVerifying}
+          disabled={!shared || isVerifying}
           className={`w-full h-14 rounded-2xl font-bold text-lg shadow-xl ${
             shared 
               ? 'bg-green-500 hover:bg-green-600 text-white' 
-              : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
+              : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
           }`}
         >
           {isVerifying ? (
@@ -323,10 +335,20 @@ export function PreLoginShareScreen() {
             </>
           ) : (
             <>
-              Continue to Login / लॉगिन करें <ArrowRight className="w-5 h-5 ml-2" />
+              🔒 Share First to Unlock / पहले शेयर करें
             </>
           )}
         </Button>
+        
+        {!shared && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-sm text-orange-600 dark:text-orange-400 mt-2"
+          >
+            ⚠️ Apna code share karo, tab hi login kar sakte ho!
+          </motion.p>
+        )}
         
         {shared && (
           <motion.p
@@ -338,6 +360,13 @@ export function PreLoginShareScreen() {
           </motion.p>
         )}
       </div>
+      
+      {/* Copyright Footer */}
+      <footer className="pb-4 text-center">
+        <p className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+          © Harish Rawat
+        </p>
+      </footer>
     </div>
   )
 }

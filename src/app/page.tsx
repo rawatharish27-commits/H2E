@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAppStore } from '@/store'
 import { LoginScreen } from '@/components/app/LoginScreen'
-import { OtpScreen } from '@/components/app/OtpScreen'
 import { HomeScreen } from '@/components/app/HomeScreen'
 import { SubscriptionScreen } from '@/components/app/SubscriptionScreen'
 import { PostProblemScreen } from '@/components/app/PostProblemScreen'
@@ -23,7 +22,9 @@ import { ContactScreen } from '@/components/app/ContactScreen'
 import { PrivacyScreen } from '@/components/app/PrivacyScreen'
 import { LegalScreen } from '@/components/app/LegalScreen'
 import { UserDashboard } from '@/components/app/UserDashboard'
+import { LeaderDashboardScreen } from '@/components/app/LeaderDashboardScreen'
 import SplashScreen from '@/components/ui/SplashScreen'
+import { useVisitorTracking } from '@/lib/visitor-tracking'
 
 export default function Home() {
   const { 
@@ -34,16 +35,25 @@ export default function Home() {
     darkMode,
     setDarkMode,
     goBack,
-    loginPhone,
-    requestLocation,
-    location,
-    locationError
+    requestLocation
   } = useAppStore()
   
-  const [mounted, setMounted] = useState(true)
+  // Visitor tracking
+  useVisitorTracking()
+  
   const [isLoading, setIsLoading] = useState(true)
+  const [isHydrated, setIsHydrated] = useState(false)
   
   const hasNavigated = useRef(false)
+
+  // Wait for Zustand to hydrate from localStorage
+  useEffect(() => {
+    // Small delay to ensure hydration completes
+    const timer = setTimeout(() => {
+      setIsHydrated(true)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Initialize app
   useEffect(() => {
@@ -60,8 +70,8 @@ export default function Home() {
       // Request location immediately on app start
       requestLocation()
       
-      // Splash delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Splash delay - 2.5 seconds (reduced for mobile)
+      await new Promise(resolve => setTimeout(resolve, 2500))
       
       setIsLoading(false)
     }
@@ -69,51 +79,39 @@ export default function Home() {
     init()
   }, [setDarkMode, requestLocation])
 
-  // Handle navigation after loading
+  // Handle navigation after loading AND hydration
   useEffect(() => {
-    if (isLoading || !mounted || hasNavigated.current) return
+    // Wait for both loading to complete AND hydration to finish
+    if (isLoading || !isHydrated || hasNavigated.current) return
     
     hasNavigated.current = true
     
     try {
       if (isAuthenticated && user) {
-        // User is logged in
+        // User is logged in - always go to home
         if (user.darkMode !== undefined) {
           setDarkMode(user.darkMode)
         }
         
-        // Check subscription status
-        if (user.paymentActive && user.activeTill && new Date(user.activeTill) > new Date()) {
-          // Check if user has seen the dashboard onboarding
-          const hasSeenDashboard = localStorage.getItem('hasSeenDashboard')
-          if (!hasSeenDashboard) {
-            setScreen('dashboard')
-          } else {
-            setScreen('home')
-          }
-        } else {
-          setScreen('subscription')
-        }
+        // Always redirect to home after login
+        setScreen('home')
       } else {
-        // New user flow: Explain → Share → Login → OTP → Subscription → Home
+        // New user flow: Splash → Welcome → Referral → Login → Home
         const hasSeenWelcome = localStorage.getItem('hasSeenWelcome')
         
+        // Always show welcome screen for new users (hasSeenWelcome not set)
         if (!hasSeenWelcome) {
-          // First time - show explain screens
+          // First time - show welcome screen
           setScreen('welcome')
         } else {
-          // Returning user - go to login
-          if (loginPhone) {
-            setScreen('otp')
-          } else {
-            setScreen('login')
-          }
+          // Returning user - go to login directly
+          setScreen('login')
         }
       }
     } catch {
       setScreen('welcome')
     }
-  }, [isLoading, mounted, isAuthenticated, user, loginPhone, setScreen, setDarkMode])
+  }, [isLoading, isHydrated, isAuthenticated, user, setScreen, setDarkMode])
 
   // Render screen
   const renderScreen = () => {
@@ -126,9 +124,6 @@ export default function Home() {
         return <PreLoginShareScreen />
       case 'login':
         return <LoginScreen />
-      case 'otp':
-        const phone = loginPhone || (typeof window !== 'undefined' ? sessionStorage.getItem('loginPhone') : null)
-        return phone ? <OtpScreen phone={phone} /> : <LoginScreen />
       case 'username':
         return <UsernameScreen onComplete={() => setScreen('home')} />
       case 'dashboard':
@@ -161,6 +156,10 @@ export default function Home() {
         return <PrivacyScreen />
       case 'legal':
         return <LegalScreen />
+      case 'leader-dashboard':
+        return <LeaderDashboardScreen />
+      case 'referral':
+        return <PreLoginShareScreen />
       default:
         return <HomeScreen />
     }
@@ -173,13 +172,21 @@ export default function Home() {
 
   return (
     <AnimatePresence mode="wait">
-      <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+      <div 
+        className={`min-h-screen ${darkMode ? 'dark' : ''}`}
+        style={{ 
+          overflowY: 'auto', 
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
         <motion.div
           key={currentScreen}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
+          style={{ minHeight: '100%' }}
         >
           {renderScreen()}
         </motion.div>

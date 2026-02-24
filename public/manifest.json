@@ -1,7 +1,7 @@
 {
-  "name": "Help2Earn - Local Help & Earn",
-  "short_name": "Help2Earn",
-  "description": "Madad karke roz ₹1000-₹2000 tak kamaayein. Local help, local income, local trust. Emergency help, time/access services, resource rent - sab ek app me. Help karo, Earn karo!",
+  "name": "Community Help Network - Local Help & Earn",
+  "short_name": "Community Help",
+  "description": "Madad karke roz ₹1000-₹2000 tak kamaayein. Local help, local income, local trust. Emergency help, time/access services, resource rent - sab ek app me. Community Help Network!",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -107,7 +107,7 @@
   },
   "protocol_handlers": [
     {
-      "protocol": "web+help2earn",
+      "protocol": "web+communityhelpnet",
       "url": "/?ref=%s"
     }
   ]

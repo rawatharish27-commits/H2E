@@ -129,6 +129,28 @@ interface SOSAlert {
   }
 }
 
+interface VisitorStats {
+  live: number
+  today: {
+    visitors: number
+    uniqueVisitors: number
+    registrations: number
+  }
+  total: {
+    visitors: number
+    registrations: number
+  }
+  devices: {
+    mobile: number
+    desktop: number
+  }
+  last7Days: Array<{
+    date: string
+    visitors: number
+    registrations: number
+  }>
+}
+
 interface SecurityEvent {
   id: string
   userId: string | null
@@ -229,11 +251,21 @@ export function AdminPanel() {
   const [payments, setPayments] = useState<AdminPayment[]>([])
   const [sosAlerts, setSosAlerts] = useState<SOSAlert[]>([])
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([])
+  const [visitorStats, setVisitorStats] = useState<VisitorStats | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [searchQuery, setSearchQuery] = useState('')
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
+  
+  // Change Password State
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
 
   // Auto-refresh data every 30 seconds
   const fetchData = useCallback(async () => {
@@ -241,12 +273,13 @@ export function AdminPanel() {
     
     setIsLoading(true)
     try {
-      const [statsRes, usersRes, paymentsRes, sosRes, securityRes] = await Promise.all([
+      const [statsRes, usersRes, paymentsRes, sosRes, securityRes, visitorsRes] = await Promise.all([
         fetch(`/api/admin/stats?adminKey=${adminKey}`),
         fetch(`/api/admin/users?adminKey=${adminKey}`),
         fetch(`/api/admin/payments?adminKey=${adminKey}`),
         fetch('/api/sos', { headers: { 'X-Admin-Key': adminKey } }),
-        fetch(`/api/admin/security?adminKey=${adminKey}`)
+        fetch(`/api/admin/security?adminKey=${adminKey}`),
+        fetch(`/api/visitors?adminKey=${adminKey}`)
       ])
 
       const statsData = await statsRes.json()
@@ -254,12 +287,14 @@ export function AdminPanel() {
       const paymentsData = await paymentsRes.json()
       const sosData = await sosRes.json()
       const securityData = await securityRes.json()
+      const visitorsData = await visitorsRes.json()
 
       if (statsData.success) setStats(statsData.stats)
       if (usersData.success) setUsers(usersData.users)
       if (paymentsData.success) setPayments(paymentsData.payments)
       if (sosData.success) setSosAlerts(sosData.alerts || [])
       if (securityData.success) setSecurityEvents(securityData.events || [])
+      if (visitorsData.success) setVisitorStats(visitorsData.stats)
       setLastUpdate(new Date())
     } catch (e) {
       console.error('Failed to fetch data', e)
@@ -362,6 +397,60 @@ export function AdminPanel() {
       await fetchData()
     } catch {
       console.error('Failed to resolve event')
+    }
+  }
+
+  // Change Admin Password
+  const handleChangePassword = async () => {
+    setPasswordError('')
+    setPasswordSuccess('')
+    
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError('All fields are required')
+      return
+    }
+    
+    if (newPassword.length < 4) {
+      setPasswordError('New password must be at least 4 characters')
+      return
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match')
+      return
+    }
+    
+    setPasswordLoading(true)
+    
+    try {
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          adminKey,
+          currentPassword, 
+          newPassword 
+        })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        setPasswordSuccess('Password changed successfully!')
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+        setTimeout(() => {
+          setShowChangePassword(false)
+          setPasswordSuccess('')
+        }, 2000)
+      } else {
+        setPasswordError(data.error || 'Failed to change password')
+      }
+    } catch {
+      setPasswordError('Network error. Please try again.')
+    } finally {
+      setPasswordLoading(false)
     }
   }
 
@@ -514,6 +603,14 @@ export function AdminPanel() {
               <Users className="w-4 h-4" />
               Users
             </TabsTrigger>
+            <TabsTrigger value="tasks" className="gap-1 data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
+              <Zap className="w-4 h-4" />
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-1 data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
+              <Settings className="w-4 h-4" />
+              Settings
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -556,6 +653,51 @@ export function AdminPanel() {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Main Stats Grid */}
+              {/* Live Visitors Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 rounded-2xl p-4 text-white shadow-lg"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                      <Activity className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">Live Visitors</h3>
+                      <p className="text-sm text-white/80">Real-time active users</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <motion.p 
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className="text-4xl font-bold"
+                    >
+                      {visitorStats?.live || 0}
+                    </motion.p>
+                    <Badge className="bg-green-400 text-green-900 text-xs animate-pulse">LIVE</Badge>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3 mt-3">
+                  <div className="bg-white/20 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-bold">{visitorStats?.today?.visitors || 0}</p>
+                    <p className="text-xs text-white/80">Today Visitors</p>
+                  </div>
+                  <div className="bg-white/20 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-bold">{visitorStats?.today?.registrations || 0}</p>
+                    <p className="text-xs text-white/80">Today Registered</p>
+                  </div>
+                  <div className="bg-white/20 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-bold">{visitorStats?.total?.registrations || 0}</p>
+                    <p className="text-xs text-white/80">Total Registered</p>
+                  </div>
+                </div>
+              </motion.div>
 
               {/* Main Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1131,6 +1273,235 @@ export function AdminPanel() {
               })}
             </div>
           </ScrollArea>
+        </TabsContent>
+
+        {/* Tasks Tab */}
+        <TabsContent value="tasks" className="flex-1 overflow-y-auto p-4 mt-0">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-lg">Platform Tasks</h3>
+                <p className="text-sm text-gray-500">Manage starter tasks for users</p>
+              </div>
+              <Button 
+                onClick={() => {
+                  // TODO: Add new task modal
+                }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+              >
+                + Add Task
+              </Button>
+            </div>
+            
+            {/* Tasks List */}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-4">
+                <p className="text-sm text-gray-500 text-center py-8">
+                  Task management is available through API.<br/>
+                  Use <code className="bg-gray-100 px-2 py-1 rounded">POST /api/starter-tasks?adminKey=your_key</code> to add tasks.
+                </p>
+                <div className="bg-gray-50 rounded-xl p-3 mt-2">
+                  <p className="text-xs text-gray-600 font-medium mb-2">Example Task JSON:</p>
+                  <pre className="text-xs text-gray-500 overflow-x-auto">
+{`{
+  "title": "Complete Profile",
+  "titleHi": "प्रोफ़ाइल पूर्ण करें",
+  "description": "Add your photo and address",
+  "descriptionHi": "अपनी फ़ोटो और पता जोड़ें",
+  "icon": "📝",
+  "type": "PROFILE",
+  "category": "PLATFORM",
+  "rewardAmount": 10
+}`}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="flex-1 overflow-y-auto p-4 mt-0">
+          <div className="space-y-4">
+            {/* Admin Profile Card */}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <Shield className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Admin Panel</h3>
+                    <p className="text-sm text-gray-500">Manage your admin settings</p>
+                    <Badge className="bg-green-500 text-white mt-1">Active</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Change Password Section */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-purple-500" />
+                  Security Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!showChangePassword ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                          <Shield className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Admin Password</p>
+                          <p className="text-xs text-gray-500">Last changed: recently</p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => setShowChangePassword(true)}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                      >
+                        Change
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-3"
+                  >
+                    <h4 className="font-medium mb-2">Change Admin Password</h4>
+                    
+                    <div>
+                      <label className="text-sm text-gray-600 mb-1 block">Current Password</label>
+                      <Input
+                        type="password"
+                        placeholder="Enter current password"
+                        value={currentPassword}
+                        onChange={(e) => {
+                          setCurrentPassword(e.target.value)
+                          setPasswordError('')
+                        }}
+                        className="h-11"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm text-gray-600 mb-1 block">New Password</label>
+                      <Input
+                        type="password"
+                        placeholder="Enter new password (min 4 chars)"
+                        value={newPassword}
+                        onChange={(e) => {
+                          setNewPassword(e.target.value)
+                          setPasswordError('')
+                        }}
+                        className="h-11"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm text-gray-600 mb-1 block">Confirm New Password</label>
+                      <Input
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value)
+                          setPasswordError('')
+                        }}
+                        className="h-11"
+                      />
+                    </div>
+                    
+                    {passwordError && (
+                      <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                        <p className="text-red-600 text-sm flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4" />
+                          {passwordError}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {passwordSuccess && (
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                        <p className="text-green-600 text-sm flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          {passwordSuccess}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowChangePassword(false)
+                          setCurrentPassword('')
+                          setNewPassword('')
+                          setConfirmPassword('')
+                          setPasswordError('')
+                          setPasswordSuccess('')
+                        }}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleChangePassword}
+                        disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
+                        className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                      >
+                        {passwordLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          'Change Password'
+                        )}
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Other Settings */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <RefreshCw className="w-5 h-5 text-blue-500" />
+                    <span>Auto Refresh</span>
+                  </div>
+                  <button
+                    onClick={() => setAutoRefresh(!autoRefresh)}
+                    className={`w-12 h-6 rounded-full transition-colors ${autoRefresh ? 'bg-green-500' : 'bg-gray-300'}`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${autoRefresh ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsAuthenticated(false)
+                    setAdminKey('')
+                  }}
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout from Admin Panel
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

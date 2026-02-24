@@ -1,5 +1,5 @@
 /**
- * WhatsApp Notification Service for Help2Earn
+ * WhatsApp Notification Service for Community Help Network
  * 
  * This service handles sending WhatsApp notifications to paid users
  * when new problems are posted within their 20 KM radius.

@@ -14,23 +14,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Help2Earn - Madad karke kamaayein | Local Help & Earn",
-  description: "Madad karke roz ₹1000-₹2000 tak kamaayein. Emergency help (puncture, charging), Time/Access (queue, errands), Resource rent (bike, tools) - sab ek app me. ₹49/month subscription. Help karo, Earn karo!",
+  title: "Community Help Network - Madad karke kamaayein | Local Help & Earn",
+  description: "Madad karke roz ₹1000-₹2000 tak kamaayein. Emergency help (puncture, charging), Time/Access (queue, errands), Resource rent (bike, tools) - sab ek app me. ₹49/month subscription. Community Help Network!",
   keywords: [
-    "Help2Earn", "Help2Earn App", "Local Help", "Nearby Help", "Local Income", 
+    "Community Help Network", "Community Help Network App", "Local Help", "Nearby Help", "Local Income", 
     "Emergency Help", "Puncture Help", "Bike Rent", "Queue Standing",
     "Local Marketplace", "India", "Ghar baithe kamao", "Side income",
     "Part time job", "Local services", "Helper app", "Earn money online"
   ],
-  authors: [{ name: "Help2Earn Team", url: "https://help2earn.app" }],
-  creator: "Help2Earn",
-  publisher: "Help2Earn",
+  authors: [{ name: "Community Help Network Team", url: "https://communityhelpnetwork.app" }],
+  creator: "Community Help Network",
+  publisher: "Community Help Network",
   manifest: "/manifest.json",
-  applicationName: "Help2Earn",
+  applicationName: "Community Help Network",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Help2Earn",
+    title: "Community Help Network",
     startupImage: [
       { url: "/icons/splash-640x1136.png", media: "(device-width: 320px)" },
       { url: "/icons/splash-750x1334.png", media: "(device-width: 375px)" },
@@ -43,26 +43,26 @@ export const metadata: Metadata = {
     address: false,
   },
   openGraph: {
-    title: "Help2Earn - Madad karke kamaayein",
+    title: "Community Help Network - Madad karke kamaayein",
     description: "Local help, local income, local trust. Emergency, Time/Access, Resource rent - sab ek app me. ₹49/month.",
     type: "website",
     locale: "en_IN",
     alternateLocale: "hi_IN",
-    siteName: "Help2Earn",
+    siteName: "Community Help Network",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Help2Earn - Local Help & Earn",
+        alt: "Community Help Network - Local Help & Earn",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    site: "@help2earn",
-    creator: "@help2earn",
-    title: "Help2Earn - Local Help & Earn",
+    site: "@communityhelpnet",
+    creator: "@communityhelpnet",
+    title: "Community Help Network - Local Help & Earn",
     description: "Madad karke roz ₹1000-₹2000 tak kamaayein. Local help marketplace.",
     images: ["/og-image.png"],
   },
@@ -78,21 +78,21 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://help2earn.app",
+    canonical: "https://communityhelpnetwork.app",
   },
   category: "lifestyle",
   classification: "Local Services Marketplace",
   rating: "4.5",
   appLinks: {
-    web: { url: "https://help2earn.app", should_fallback: true },
+    web: { url: "https://communityhelpnetwork.app", should_fallback: true },
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f97316" },
@@ -118,7 +118,12 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Help2Earn" />
+        <meta name="apple-mobile-web-app-title" content="Community Help Network" />
+        
+        {/* Mobile Optimization */}
+        <meta name="HandheldFriendly" content="true" />
+        <meta name="MobileOptimized" content="width" />
+        <meta name="format-detection" content="telephone=yes" />
         
         {/* Microsoft Tiles */}
         <meta name="msapplication-TileColor" content="#f97316" />
@@ -159,6 +164,12 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        style={{ 
+          overflowY: 'auto', 
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain'
+        }}
       >
         {children}
         <Toaster />

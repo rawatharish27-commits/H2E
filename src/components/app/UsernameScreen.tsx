@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { User, ArrowRight, Loader2, CheckCircle, BadgeCheck } from 'lucide-react'
+import { User, ArrowRight, Loader2, CheckCircle, BadgeCheck, ArrowLeft } from 'lucide-react'
 import { useAppStore } from '@/store'
 
 interface UsernameScreenProps {
@@ -16,7 +16,7 @@ export function UsernameScreen({ onComplete }: UsernameScreenProps) {
   const [name, setName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const { user, setUser, darkMode } = useAppStore()
+  const { user, setUser, darkMode, goBack } = useAppStore()
 
   const handleSubmit = async () => {
     setError('')
@@ -64,11 +64,19 @@ export function UsernameScreen({ onComplete }: UsernameScreenProps) {
     <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-orange-50 via-white to-pink-50'}`}>
       {/* Header */}
       <header className="pt-6 px-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={goBack}
+            className={`rounded-xl ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-orange-100'}`}
+          >
+            <ArrowLeft className={`w-5 h-5 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
+          </Button>
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
             <span className="text-xl">🤝</span>
           </div>
-          <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Help2Earn</span>
+          <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Community Help Network</span>
         </div>
       </header>
 
@@ -87,7 +95,7 @@ export function UsernameScreen({ onComplete }: UsernameScreenProps) {
           >
             <img 
               src="/logo-handshake.png" 
-              alt="Help2Earn Logo" 
+              alt="Community Help Network Logo" 
               className="w-full h-full object-cover"
             />
           </motion.div>

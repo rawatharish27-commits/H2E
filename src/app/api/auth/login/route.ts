@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // Find user by phone
+    // Find user
     const user = await db.user.findUnique({
       where: { phone }
     })
@@ -33,38 +33,61 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: false,
         error: 'User not found. Please register first.'
-      }, { status: 400 })
+      }, { status: 404 })
     }
 
-    // Verify password (stored in badges field as JSON)
-    try {
-      const badges = user.badges ? JSON.parse(user.badges) : {}
-      if (badges.pwd !== password) {
-        return NextResponse.json({
-          success: false,
-          error: 'Incorrect password'
-        }, { status: 400 })
-      }
-    } catch {
+    // Check if user is blocked/banned
+    if (user.isBanned) {
       return NextResponse.json({
         success: false,
-        error: 'Account error. Please contact support.'
-      }, { status: 400 })
+        error: 'Your account has been banned. Contact support.'
+      }, { status: 403 })
     }
 
-    // Update last login IP
-    await db.user.update({
-      where: { id: user.id },
-      data: {
-        lastLoginIP: request.headers.get('x-forwarded-for') || 'unknown',
-        lastActiveAt: new Date()
-      }
-    })
+    if (user.isBlocked && user.blockedTill && new Date() < user.blockedTill) {
+      return NextResponse.json({
+        success: false,
+        error: 'Account temporarily blocked. Please try again later.'
+      }, { status: 403 })
+    }
+
+    // Verify password (stored in referralCode field temporarily, or create a password field)
+    // For now, we'll use a simple password check
+    // In production, use bcrypt and a dedicated password field
+    
+    // Get stored password (we'll store it in a custom field or use a hash)
+    // Since schema doesn't have password field, we'll use a simple approach
+    // Store password hash in the user's badges field as JSON for now
+    
+    let storedPasswordHash = ''
+    try {
+      const badges = user.badges ? JSON.parse(user.badges) : {}
+      storedPasswordHash = badges.pwd || ''
+    } catch {
+      storedPasswordHash = ''
+    }
+
+    // Simple password comparison (in production use bcrypt)
+    if (!storedPasswordHash || storedPasswordHash !== password) {
+      return NextResponse.json({
+        success: false,
+        error: 'Incorrect password. Please try again.'
+      }, { status: 401 })
+    }
 
     // Create session
     const token = await createSession(user.id)
 
-    // Return user data
+    // Update last login
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        lastActiveAt: new Date(),
+        lastLoginIP: request.headers.get('x-forwarded-for') || 'unknown'
+      }
+    })
+
+    // Return user data (excluding sensitive fields)
     const userData = {
       id: user.id,
       phone: user.phone,
@@ -85,8 +108,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       success: true,
       user: userData,
-      token,
-      message: 'Login successful!'
+      token
     })
 
     // Set cookie

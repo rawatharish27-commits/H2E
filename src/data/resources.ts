@@ -1,4 +1,4 @@
-// Comprehensive Resources Data for Help2Earn
+// Comprehensive Resources Data for Community Help Network
 // 15 Categories with 150+ Resources - Visual Representation with Images
 
 export interface Resource {

@@ -102,11 +102,11 @@ export function AboutScreen({ onBack }: AboutScreenProps) {
           >
             <img 
               src="/logo-handshake.png" 
-              alt="Help2Earn Logo" 
+              alt="Community Help Network Logo" 
               className="w-full h-full object-cover"
             />
           </motion.div>
-          <h2 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>Help2Earn</h2>
+          <h2 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>Community Help Network</h2>
           <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Connecting People</p>
           <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'} mt-1`}>लोगों को जोड़ना</p>
         </motion.div>
@@ -136,7 +136,7 @@ export function AboutScreen({ onBack }: AboutScreenProps) {
               </p>
               <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm leading-relaxed`}>
                 हम मानते हैं कि हर किसी के पास देने के लिए कुछ मूल्यवान है - समय, कौशल, या संसाधन। 
-                Help2Earn उन लोगों से जोड़ता है जिन्हें मदद चाहिए और जो मदद कर सकते हैं।
+                Community Help Network उन लोगों से जोड़ता है जिन्हें मदद चाहिए और जो मदद कर सकते हैं।
               </p>
             </CardContent>
           </Card>
@@ -171,8 +171,8 @@ export function AboutScreen({ onBack }: AboutScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Why Help2Earn?</h3>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-4`}>Help2Earn क्यों?</p>
+          <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Why Community Help Network?</h3>
+          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-4`}>Community Help Network क्यों?</p>
           <div className="space-y-3">
             {features.map((feature, index) => (
               <motion.div
@@ -234,7 +234,7 @@ export function AboutScreen({ onBack }: AboutScreenProps) {
           transition={{ delay: 1 }}
           className={`text-center ${darkMode ? 'text-gray-500' : 'text-gray-400'} text-xs mt-8`}
         >
-          Version 1.0.0 • © 2024 Help2Earn
+          Version 1.0.0 • © Harish Rawat
         </motion.p>
       </main>
     </div>
