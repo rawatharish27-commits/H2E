@@ -68,6 +68,14 @@ interface Stats {
   trustScoreAvg: number
   noShowRate: number
   newUsersToday: number
+  // Free access
+  isFreeAccess: boolean
+  freeAccessUntil: string
+  daysRemaining: number
+  // Visitor stats
+  liveVisitors: number
+  todayVisitors: number
+  todayRegistrations: number
 }
 
 interface AdminUser {
@@ -257,6 +265,7 @@ export function AdminPanel() {
   const [searchQuery, setSearchQuery] = useState('')
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [freeAccessInfo, setFreeAccessInfo] = useState<{ isFreeAccess: boolean; freeAccessUntil: string; daysRemaining: number } | null>(null)
   
   // Change Password State
   const [showChangePassword, setShowChangePassword] = useState(false)
@@ -273,13 +282,14 @@ export function AdminPanel() {
     
     setIsLoading(true)
     try {
-      const [statsRes, usersRes, paymentsRes, sosRes, securityRes, visitorsRes] = await Promise.all([
+      const [statsRes, usersRes, paymentsRes, sosRes, securityRes, visitorsRes, settingsRes] = await Promise.all([
         fetch(`/api/admin/stats?adminKey=${adminKey}`),
         fetch(`/api/admin/users?adminKey=${adminKey}`),
         fetch(`/api/admin/payments?adminKey=${adminKey}`),
         fetch('/api/sos', { headers: { 'X-Admin-Key': adminKey } }),
         fetch(`/api/admin/security?adminKey=${adminKey}`),
-        fetch(`/api/visitors?adminKey=${adminKey}`)
+        fetch(`/api/visitors?adminKey=${adminKey}`),
+        fetch(`/api/admin/verify?adminKey=${adminKey}`)
       ])
 
       const statsData = await statsRes.json()
@@ -288,6 +298,7 @@ export function AdminPanel() {
       const sosData = await sosRes.json()
       const securityData = await securityRes.json()
       const visitorsData = await visitorsRes.json()
+      const settingsData = await settingsRes.json()
 
       if (statsData.success) setStats(statsData.stats)
       if (usersData.success) setUsers(usersData.users)
@@ -295,6 +306,7 @@ export function AdminPanel() {
       if (sosData.success) setSosAlerts(sosData.alerts || [])
       if (securityData.success) setSecurityEvents(securityData.events || [])
       if (visitorsData.success) setVisitorStats(visitorsData.stats)
+      if (settingsData.success) setFreeAccessInfo(settingsData.settings)
       setLastUpdate(new Date())
     } catch (e) {
       console.error('Failed to fetch data', e)
@@ -622,6 +634,43 @@ export function AdminPanel() {
             </div>
           ) : stats ? (
             <div className="space-y-4">
+              {/* Free Access Countdown Banner */}
+              {stats.isFreeAccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-4 text-white shadow-lg"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                        <Timer className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">FREE ACCESS Active</h3>
+                        <p className="text-sm text-white/80">All services are FREE for everyone!</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <motion.p 
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ repeat: Infinity, duration: 2 }}
+                        className="text-3xl font-bold"
+                      >
+                        {stats.daysRemaining}
+                      </motion.p>
+                      <p className="text-xs text-white/80">days left</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 bg-white/20 rounded-xl p-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Paid services start on:</span>
+                      <span className="font-bold">{new Date(stats.freeAccessUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Critical Alerts */}
               <AnimatePresence>
                 {(stats.activeSOS > 0 || stats.fraudAttempts > 0) && (

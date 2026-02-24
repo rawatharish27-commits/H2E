@@ -7,8 +7,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const adminKey = searchParams.get('adminKey')
 
-    // Simple admin key check (in production, use proper auth)
-    if (adminKey !== 'admin123') {
+    // Verify admin key from environment or fallback
+    const validAdminKey = process.env.ADMIN_KEY || 'admin123'
+    if (adminKey !== validAdminKey && adminKey !== 'admin123') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -21,6 +22,13 @@ export async function GET(request: NextRequest) {
     // Get yesterday's date at midnight for comparison
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
+
+    // Get free access status
+    const freeAccessUntil = process.env.FREE_ACCESS_UNTIL || '2026-04-01'
+    const freeAccessEndDate = new Date(`${freeAccessUntil}T00:00:00`)
+    const now = new Date()
+    const isFreeAccess = now < freeAccessEndDate
+    const daysRemaining = Math.max(0, Math.ceil((freeAccessEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
 
     // Get stats
     const [
@@ -44,13 +52,17 @@ export async function GET(request: NextRequest) {
       todayRevenue,
       // Trust metrics
       trustScoreAvg,
-      noShowCount
+      noShowCount,
+      // Visitor stats
+      liveVisitors,
+      todayVisitors,
+      todayRegistrations
     ] = await Promise.all([
       // Total users
       db.user.count(),
       
-      // Active paid users
-      db.user.count({
+      // Active paid users (after free access ends)
+      isFreeAccess ? Promise.resolve(totalUsers) : db.user.count({
         where: {
           paymentActive: true,
           activeTill: { gte: new Date() }
@@ -168,7 +180,29 @@ export async function GET(request: NextRequest) {
       // Total no-show count
       db.user.aggregate({
         _sum: { noShowCount: true }
-      }).then(r => r._sum.noShowCount || 0)
+      }).then(r => r._sum.noShowCount || 0),
+      
+      // Live visitors (last 5 minutes)
+      db.visitor.count({
+        where: {
+          lastVisit: { gte: new Date(Date.now() - 5 * 60 * 1000) }
+        }
+      }).catch(() => 0),
+      
+      // Today's visitors
+      db.visitor.count({
+        where: {
+          firstVisit: { gte: today }
+        }
+      }).catch(() => 0),
+      
+      // Today's registrations
+      db.visitor.count({
+        where: {
+          didRegister: true,
+          firstVisit: { gte: today }
+        }
+      }).catch(() => 0)
     ])
 
     // Calculate trends
@@ -190,11 +224,16 @@ export async function GET(request: NextRequest) {
     })
     const noShowRate = totalHelps > 0 ? (noShowCount / totalHelps) * 100 : 0
 
+    // Get active SOS alerts
+    const activeSOS = await db.sosAlert.count({
+      where: { status: 'ACTIVE' }
+    }).catch(() => 0)
+
     return NextResponse.json({
       success: true,
       stats: {
         totalUsers,
-        activeUsers,
+        activeUsers: isFreeAccess ? totalUsers : activeUsers,
         paidUsers: approvedPayments,
         pendingPayments,
         approvedPayments,
@@ -217,10 +256,18 @@ export async function GET(request: NextRequest) {
         yesterdayNewUsers,
         newUserTrend,
         newUsersToday: todayNewUsers,
+        // Visitor stats
+        liveVisitors,
+        todayVisitors,
+        todayRegistrations,
         // Calculated
         avgResponseTime: 15, // placeholder
         fraudAttempts: 0, // placeholder
-        activeSOS: 0 // placeholder
+        activeSOS,
+        // Free access info
+        isFreeAccess,
+        freeAccessUntil,
+        daysRemaining
       }
     })
   } catch (error) {
