@@ -312,6 +312,7 @@ model User {
   starterTasks          StarterTaskCompletion[]
   areaAdminProfile      AreaAdmin?
   coreHelperProfiles    CoreHelper[]
+  helperRegistrations   HelperRegistration[]
 
   @@index([phone])
   @@index([trustScore])
@@ -1061,6 +1062,9 @@ model HelperRegistration {
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  helper  User  @relation(fields: [helperId], references: [id])
 
   @@unique([problemId, helperId])
   @@index([problemId])
