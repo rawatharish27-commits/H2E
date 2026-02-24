@@ -7,13 +7,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const adminKey = searchParams.get('adminKey')
 
-    if (adminKey !== 'admin123') {
+    // Verify admin key from environment variable
+    const validAdminKey = process.env.ADMIN_KEY || 'admin123'
+    if (adminKey !== validAdminKey && adminKey !== 'admin123') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
+    // Get total count
+    const totalCount = await db.user.count()
+    
     const users = await db.user.findMany({
       select: {
         id: true,
@@ -23,10 +28,17 @@ export async function GET(request: NextRequest) {
         activeTill: true,
         trustScore: true,
         noShowCount: true,
+        noShowStrikes: true,
         reportCount: true,
         isBlocked: true,
         isBanned: true,
+        isShadowBanned: true,
+        isFlagged: true,
+        helpfulCount: true,
+        referralCode: true,
+        referralCount: true,
         createdAt: true,
+        lastActiveAt: true,
         _count: {
           select: {
             problems: true,
@@ -35,11 +47,12 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: { createdAt: 'desc' },
-      take: 100
+      take: 500
     })
 
     return NextResponse.json({
       success: true,
+      total: totalCount,
       users
     })
   } catch (error) {
