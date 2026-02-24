@@ -46,6 +46,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get helper info
+    const helper = await db.user.findUnique({
+      where: { id: helperId },
+      select: { id: true, name: true, phone: true }
+    })
+
     // Check if already registered
     const existingRegistration = await db.helperRegistration.findUnique({
       where: {
@@ -81,14 +87,67 @@ export async function POST(request: NextRequest) {
     const newRank = registrationCount + 1
     const hasPhoneAccess = newRank <= MAX_HELPERS_WITH_PHONE
 
-    // Create registration
-    await db.helperRegistration.create({
-      data: {
-        problemId,
-        helperId,
-        rank: newRank,
-        status: 'REGISTERED'
+    // Create registration and notifications in a transaction
+    await db.$transaction(async (tx) => {
+      // 1. Create the registration
+      await tx.helperRegistration.create({
+        data: {
+          problemId,
+          helperId,
+          rank: newRank,
+          status: 'REGISTERED'
+        }
+      })
+
+      // 2. Send notification to HELPER (if they got phone access)
+      if (hasPhoneAccess) {
+        await tx.notification.create({
+          data: {
+            userId: helperId,
+            type: 'HELP',
+            title: '🎉 Phone Number Unlocked!',
+            message: `You're #${newRank} for "${problem.title}". Call ${problem.postedBy.name || 'the client'} at +91${problem.postedBy.phone}`,
+            data: JSON.stringify({
+              problemId,
+              clientPhone: problem.postedBy.phone,
+              clientName: problem.postedBy.name,
+              rank: newRank
+            })
+          }
+        })
+      } else {
+        // Waitlist notification
+        await tx.notification.create({
+          data: {
+            userId: helperId,
+            type: 'HELP',
+            title: '⏳ Added to Waitlist',
+            message: `You're #${newRank} for "${problem.title}". Only first 5 helpers get the phone number. Wait for your turn!`,
+            data: JSON.stringify({
+              problemId,
+              rank: newRank
+            })
+          }
+        })
       }
+
+      // 3. Send notification to CLIENT (someone wants to help!)
+      await tx.notification.create({
+        data: {
+          userId: problem.postedBy.id,
+          type: 'HELP',
+          title: '🤝 Someone wants to help!',
+          message: `${helper?.name || 'A helper'} is ready to help with "${problem.title}". ${hasPhoneAccess ? 'They can call you now!' : `They're #${newRank} in queue.`}`,
+          data: JSON.stringify({
+            problemId,
+            helperId,
+            helperName: helper?.name,
+            helperPhone: helper?.phone,
+            rank: newRank,
+            hasPhoneAccess
+          })
+        }
+      })
     })
 
     return NextResponse.json({
@@ -98,6 +157,7 @@ export async function POST(request: NextRequest) {
       hasPhoneAccess,
       clientPhone: hasPhoneAccess ? problem.postedBy.phone : null,
       clientName: hasPhoneAccess ? problem.postedBy.name : null,
+      totalRegistered: registrationCount + 1,
       message: hasPhoneAccess 
         ? `You are #${newRank}! Call the client now.`
         : `You are #${newRank} in the waitlist. First 5 helpers get the phone number.`
@@ -170,7 +230,17 @@ export async function GET(request: NextRequest) {
     const registrations = await db.helperRegistration.findMany({
       where: { problemId },
       orderBy: { rank: 'asc' },
-      take: 10
+      take: 10,
+      include: {
+        helper: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            trustScore: true
+          }
+        }
+      }
     })
 
     return NextResponse.json({

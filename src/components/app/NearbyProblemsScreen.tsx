@@ -499,14 +499,20 @@ export function NearbyProblemsScreen() {
                           </Button>
                           
                           {helperStatus?.registered && helperStatus.hasPhoneAccess ? (
-                            <Button
-                              size="sm"
-                              onClick={() => handleCall(helperStatus.clientPhone!)}
-                              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl h-10"
-                            >
-                              <Phone className="w-4 h-4 mr-1" />
-                              Call #{helperStatus.rank}
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <div className={`text-right ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                <p className="text-xs text-green-600 font-medium">Phone Unlocked!</p>
+                                <p className="font-bold text-sm">+91{helperStatus.clientPhone}</p>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => handleCall(helperStatus.clientPhone!)}
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl h-10 px-4"
+                              >
+                                <Phone className="w-4 h-4 mr-1" />
+                                Call
+                              </Button>
+                            </div>
                           ) : helperStatus?.registered ? (
                             <div className={`flex items-center gap-1 px-3 py-2 rounded-xl ${darkMode ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-50 text-yellow-700'}`}>
                               <Timer className="w-4 h-4" />
@@ -631,14 +637,41 @@ export function NearbyProblemsScreen() {
                     const status = helperStatuses[selectedProblem.id]
                     if (status?.registered && status.hasPhoneAccess) {
                       return (
-                        <div className={`p-4 rounded-xl bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700`}>
-                          <div className="flex items-center gap-2 text-green-700 dark:text-green-400 mb-2">
+                        <div className={`p-4 rounded-xl bg-green-100 dark:bg-green-900/30 border-2 border-green-400 dark:border-green-600`}>
+                          <div className="flex items-center gap-2 text-green-700 dark:text-green-400 mb-3">
                             <CheckCircle className="w-5 h-5" />
-                            <span className="font-bold">You're #{status.rank} - Phone Number Unlocked!</span>
+                            <span className="font-bold">🎉 You're #{status.rank} - Phone Unlocked!</span>
                           </div>
-                          <p className={`text-sm ${darkMode ? 'text-green-300' : 'text-green-600'}`}>
-                            Call {status.clientName || 'the client'} now: {status.clientPhone}
-                          </p>
+                          
+                          {/* Big Phone Number Display */}
+                          <div className={`p-4 rounded-xl ${darkMode ? 'bg-green-800/50' : 'bg-white'} border border-green-300 mb-3`}>
+                            <p className={`text-xs ${darkMode ? 'text-green-300' : 'text-green-600'} mb-1`}>
+                              {status.clientName || 'Client'} का Number:
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                +91{status.clientPhone}
+                              </p>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(`+91${status.clientPhone}`)
+                                }}
+                                variant="outline"
+                                className="rounded-lg"
+                              >
+                                📋 Copy
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <Button
+                            onClick={() => handleCall(status.clientPhone!)}
+                            className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold text-lg"
+                          >
+                            <Phone className="w-5 h-5 mr-2" />
+                            अभी Call करें
+                          </Button>
                         </div>
                       )
                     } else if (status?.registered) {
